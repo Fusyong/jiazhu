@@ -80,7 +80,7 @@ local function par_break(par_head)
     local parfillskip = node.new("glue", "parfillskip")
     -- parfillskip.spec = node.new("gluespec")
     parfillskip.stretch = 2^16 -- 拉伸量2^16、0.8 * tex.hsize
-    parfillskip.stretchorder = 0 --拉伸倍数 2、0
+    parfillskip.stretchorder = 2 --拉伸倍数 2、0
     -- print("----------------段落填充-----------")
     -- print(parfillskip)
     -- print(parfillskip.stretch)
@@ -207,7 +207,7 @@ local function main_trial_typeseting(head)
     return new_head
 end
 
-function Jiazhu.linebreaker(head)
+function Jiazhu.jiazhu(head)
     -- 仅处理段落
     if head.id == par_id then
         local copy_head = node.copylist(head)
@@ -236,7 +236,7 @@ function Jiazhu.opt()
     -- 只能使用CLD样式添加任务
     -- "processors", "before"，只加了par vmodepar和左右parfill skip
     -- "processors", "after"，还加入了字间的glue userskip、标点前后的penalty userpenalty，可用于断行
-    nodes.tasks.appendaction("processors", "after", "Linebreaker.linebreaker")
+    nodes.tasks.appendaction("processors", "after", "Jiazhu.jiazhu")
 end
 
 return Jiazhu
