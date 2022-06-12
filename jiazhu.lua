@@ -1,6 +1,6 @@
 Moduledata = Moduledata or {}
-Moduledata.linebreaker = Moduledata.linebreaker or {}
-Linebreaker = Moduledata.linebreaker
+Moduledata.jiazhu = Moduledata.jiazhu or {}
+Jiazhu = Moduledata.jiazhu
 
 local glyph_id = nodes.nodecodes.glyph --node.id("glyph")
 local hlist_id = nodes.nodecodes.hlist
@@ -207,7 +207,7 @@ local function main_trial_typeseting(head)
     return new_head
 end
 
-function Linebreaker.linebreaker(head)
+function Jiazhu.linebreaker(head)
     -- 仅处理段落
     if head.id == par_id then
         local copy_head = node.copylist(head)
@@ -232,11 +232,11 @@ function Linebreaker.linebreaker(head)
     return head, true
 end
 
-function Linebreaker.opt()
+function Jiazhu.opt()
     -- 只能使用CLD样式添加任务
     -- "processors", "before"，只加了par vmodepar和左右parfill skip
     -- "processors", "after"，还加入了字间的glue userskip、标点前后的penalty userpenalty，可用于断行
     nodes.tasks.appendaction("processors", "after", "Linebreaker.linebreaker")
 end
 
-return Linebreaker
+return Jiazhu
