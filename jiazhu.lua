@@ -150,7 +150,7 @@ local function insert_jiazhu(par_head, jiazhu_boxes)
                 print(w)
                 local hsize = jiazhu_hsize(h, w)
                 print("jiazhu_hsize", hsize)
-                print("box_width", jiazhu_boxes[1].width)
+                -- print("box_width", jiazhu_boxes[1].width)
                 print("9em", tex.sp("9em"))
                 stop = true
             end
@@ -158,7 +158,7 @@ local function insert_jiazhu(par_head, jiazhu_boxes)
         end
         if stop then break end
     end
-    local head_with_jiazhu = nil
+    local head_with_jiazhu = n
     return head_with_jiazhu
 end
 
@@ -204,7 +204,7 @@ local function main_trial_typeseting(head)
 
     local head_with_jiazhu = insert_jiazhu(new_head, jiazhu_boxes)
 
-    return new_head
+    return head_with_jiazhu
 end
 
 function Jiazhu.jiazhu(head)
