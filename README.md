@@ -5,14 +5,26 @@
 
 也是本人学习LuaMetaTeX、LuaTeX的练习项目，主要涉及：段落与行的结点列表的操控；使用tex.linebreak()函数等干预断行；使用回调函数。会保留较多学习性的注释和代码。
 
-> 术语参考[CTeX-org](https://github.com/CTeX-org/ctex-kit/blob/master/jiazhu/jiazhu.dtx)：
->
+术语参考[CTeX-org](https://github.com/CTeX-org/ctex-kit/blob/master/jiazhu/jiazhu.dtx)：
+
 > `jiazhu`: splitted annotation or
 inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū in Japanese.
 
+## 大致思路
+
+1. 在文档中段落插入夹注hbox，并给盒子加一个属性作为标记；
+1. 在"processors"类的"after"小类回调中处理：
+   1. 用一个一字宽rule结点代替段落中的夹注盒子，并在一个表中收集夹注盒子，循环：
+      1. 重新试排段落，找到分行后的rule，获取从它到行末的宽度；
+      1. 根据这个宽度试排对应夹注盒子的节点列表，循环：
+         1. 如果试排所得大于或等于两行，则取前两行vpack插入rule之前，其后加罚点10000（强制断行点）；
+            1. 如果正好两行（允许有第二行有一二字不满），删除rule标记；
+         1. 如果不足两行，则缩小试排宽度，直到正好为两行为止（根据盒子原宽度优化算法）；
+1. 用新的节点列表代替原段落的节点列表（由系统断行）。
+
 ## 当前状态
 
-未完成。
+未完成。当前障碍是：使用tex.linebreak()试排段落时，末行行尾填充（parfillskip）无效。望方家不吝赐教。
 
 # 关于断行、分段的备用资料
 
