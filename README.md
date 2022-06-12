@@ -1,5 +1,20 @@
 
-# 关于断行分段
+# jiazhu
+
+适用于LuaMetaTeX(LMTX)的夹注模块。调整后应该可用于LuaTeX。
+
+也是本人学习LuaMetaTeX、LuaTeX的练习项目，主要涉及：段落与行的结点列表的操控；使用tex.linebreak()函数等干预断行；使用回调函数。会保留较多学习性的注释和代码。
+
+> 术语参考[CTeX-org](https://github.com/CTeX-org/ctex-kit/blob/master/jiazhu/jiazhu.dtx)：
+>
+> `jiazhu`: splitted annotation or
+inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū in Japanese.
+
+## 当前状态
+
+未完成。
+
+# 关于断行、分段的备用资料
 
 ## cjk排版原型
 
