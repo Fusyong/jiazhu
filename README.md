@@ -24,7 +24,7 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
 
 ## 当前状态
 
-未完成。当前障碍是：使用tex.linebreak()试排段落时，末行行尾填充（parfillskip）无效。望方家不吝赐教。
+未完成。
 
 # 关于断行、分段的备用资料
 
@@ -77,4 +77,13 @@ Then in post_linebreak_filter I replace the generated paragraph node list with s
 http://www.pragma-ade.com/general/manuals/hybrid.pdf, p95
 
 in September 2008, when we were exploring solutions for Arabic par building, Taco converted the parbuilder into Lua code and **stripped away all code related to hyphenation, protrusion, expansion, last line fitting, and some more.**
+
+## 末行长度与段落填充控制
+
+https://tex.stackexchange.com/questions/63762/minimum-length-of-last-line-of-a-paragraph
+
+## 结点操控参考实例
+
+* https://github.com/gucci-on-fleek/lua-widow-control
+
 
