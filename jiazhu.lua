@@ -8,7 +8,27 @@ local vlist_id = nodes.nodecodes.vlist
 local glue_id = nodes.nodecodes.glue
 local rule_id = nodes.nodecodes.rule
 local par_id = nodes.nodecodes.par
+local penalty_id = nodes.nodecodes.penalty
 local whatsit_id = nodes.nodecodes.whatsit
+
+local function show_detail(n, label) 
+    print(">>>>>>>>>"..label.."<<<<<<<<<<")
+    for i in node.traverse(n) do
+        local char
+        if i.id == glyph_id then
+            char = utf8.char(i.char)
+            print(i, char)
+        elseif i.id == penalty_id then
+            print(i, i.penalty)
+        elseif i.id == glue_id then
+            print(i, i.width, i.stretch, i.shrink)
+        elseif i.id == hlist_id then
+            print(i, nodes.toutf(i))
+        else
+            print(i)
+        end
+    end
+end
 
 -- 用rule代替夹注盒子，并收集夹注盒子
 local function boxes_to_rules(head)
@@ -16,41 +36,13 @@ local function boxes_to_rules(head)
     local jiazhu_boxes = {}
     while n do
         if node.hasattribute(n, 2, 222) and n.id == hlist_id then
-            -- print("======找到夹注====")
-            -- print(box)
-            -- print(nodes.tosequence(box.list))
-            -- print(nodes.toutf(box.list))
-        
-            -- local w = node.new(whatsit_id, "user_defined") --8
             local w = node.new(rule_id)
             w.width = tex.sp("1em")
             node.setattribute(w, 3, 333)
-            -- local v = node.hasattribute(w, 3, 333)
-            -- w.type = 108
-            -- w.value = "hello world"
-            -- w.user_id = 5
-            -- print(w.subtype, w.user_id,w.type, w.value,w.attr, v)
             head = node.insertbefore(head, n, w)
-            print("----------------glue---------------")
-            print(n.prev)
-            print("----------------glue1---------------")
-            print(n.prev.prev.width)
-            print(n.prev.prev.stretch)
-            print(n.prev.prev.stretchorder)
-            print(n.prev.prev.shrink)
-            print(n.prev.prev.shrinkorder)
-            print("----------------glue2---------------")
-            print(n.prev.prev.prev.prev.width)
-            print(n.prev.prev.prev.prev.prev.prev.stretch)
-            print(n.prev.prev.prev.prev.stretchorder)
-            print(n.prev.prev.prev.prev.shrink)
-            print(n.prev.prev.prev.prev.shrinkorder)
             local removed = nil
             head, n, removed = node.remove(head, n)
             table.insert(jiazhu_boxes, removed)
-            -- print("===========================")
-            -- print(nodes.tosequence(new_head))
-            -- print(nodes.toutf(new_head))
         end
         n = n.next
     end
@@ -64,11 +56,7 @@ local function par_break(par_head, hsize, to_stretch)
     local new_head = par_head
     local is_vmode_par = (new_head.id == par_id)
 
-    -- print("==========分行前==========")
-    -- print(nodes.tosequence(par_head))
-    
     if not is_vmode_par then
-        print("==========插入par==========")
         local vmodepar_node = node.new("par", "vmodepar")
         new_head, _ = node.insertbefore(new_head, new_head, vmodepar_node)
     end
@@ -104,13 +92,6 @@ local function par_break(par_head, hsize, to_stretch)
     -- 保障prev指针正确
     node.slide(new_head)
 
-    print("=========预备分行用的段落===========")
-    for i in node.traverse(par_head) do
-        print(i)
-    end
-    print(nodes.tosequence(par_head))
-    print("tail",node.tail(par_head))
-
     language.hyphenate(new_head) -- 断词，给单词加可能的连字符断点
     new_head = node.kerning(new_head) -- 加字间（出格）
     new_head = node.ligaturing(new_head) -- 西文合字
@@ -137,66 +118,64 @@ local function jiazhu_hsize(hlist, current_n)
 end
 
 -- 生成双行夹注
-local function make_jiazhu(par_head_with_rule, vpar_head,hsize, boxes)
+local function make_jiazhu_box(hsize, boxes)
     local b = boxes[1]
     local box_width =b.width -- 对应的夹注盒子宽度
-    -- print("========夹注===========")
-    -- print("hsize", hsize)
-    -- print("box_width", box_width)
-    -- print("<<<<<<<<<<<< 盒子 1 >>>>>>>>>>>>")
-    -- for i in node.traverse(b.list) do
-    --     print(i)
-    -- end
+    local b_list = b.list
+    local to_remove -- 本条已经完成，需要移除
 
     -- 夹注重排算法
     local width_tolerance = tex.sp("0.5em") -- 宽容宽度（挤进一行）；兼步进控制
     local vbox_width = box_width / 2
-    local par_head, info
+    local box_head, info
     -- 可一次（两行）安排完的短盒子
     if vbox_width <= (hsize + width_tolerance) then
         local line_num = 3
         while(line_num >= 3) do
-            par_head, info = par_break(node.copylist(b.list), vbox_width, true)
+            box_head, info = par_break(node.copylist(b_list), vbox_width, true)
             line_num = info.prevgraf
             vbox_width = vbox_width + width_tolerance / 2 -- TODO 改进步进量或段末胶
         end
-        -- TODO 插入vbox，删除box，删除rule
-        -- 需要循环安排的长盒子
-    else
-        par_head, info = par_break(node.copylist(b.list), hsize, false)
-        -- TODO 插入vbox，剪裁box
+        -- TODO 盒子打包
+        box_head = node.vpack(box_head)
+        to_remove = true
+        table.remove(boxes, 1)
+    else -- 需要循环安排的长盒子
+        box_head, info = par_break(node.copylist(b_list), hsize, false)
+        -- TODO 盒子打包，剪裁box
+        to_remove = false
     end
-    
-    context(par_head)
 
-    return par_head_with_rule, vpar_head, boxes
+    return box_head, boxes, to_remove
 end
 
 -- 根据第一个rule的位置分拆、组合、插入夹注盒子、罚点等
-local function insert_jiazhu(par_head_with_rule, vpar_head, jiazhu_boxes)
-    local v_n = vpar_head
+local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
     local stop = false
-    -- print("<<<<<<<<<<<<准备替换的行>>>>>>>>>>>>")
-    -- for i in node.traverse(n) do
-    --     print(i)
-    -- end
-    -- print(nodes.tosequence(n))
-    -- print(nodes.tosequence(n.next.next.next.next.head))
-
     -- 寻找行，寻找rule
-    for h,_ in node.traverseid(hlist_id, v_n) do
+    local jiazhu_box
+    for h,_ in node.traverseid(hlist_id, vpar_head) do
         for r, _ in node.traverseid(rule_id,h.head) do
             if node.hasattribute(r,3,333) then
                 local hsize = jiazhu_hsize(h, r) -- 夹注标记rule到行尾的长度
-                par_head_with_rule, vpar_head, jiazhu_boxes = make_jiazhu(par_head_with_rule, vpar_head, hsize, jiazhu_boxes)
-                -- TODO 递归
+                local to_remove
+                jiazhu_box, jiazhu_boxes, to_remove = make_jiazhu_box(hsize, jiazhu_boxes)
+                -- TODO 插入
+                head_with_rules, jiazhu_box = node.insertbefore(head_with_rules, r, jiazhu_box)
+                local penalty = node.new("penalty")
+                penalty.penalty = -100000
+                head_with_rules, penalty = node.insertafter(head_with_rules, jiazhu_box, penalty)
+
+                if to_remove then
+                    head_with_rules, _ = node.remove(head_with_rules,r,true)
+                end
                 stop = true
             end
             if stop then break end
         end
         if stop then break end
     end
-    return v_n
+    return head_with_rules, jiazhu_boxes
 end
 
 -- 分析分行结果
@@ -208,66 +187,32 @@ end
 -- 试排主段落：
 local function main_trial_typeseting(head)
 
-    -- print("============替换前的段落============")
-    -- print(nodes.toutf(head))
-    -- print(nodes.tosequence(head))
-    -- for i in node.traverse(head) do
-    --     print(i)
-    -- end
-
     local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
-    -- print("============替换后的段落============")
-    -- for i in node.traverse(par_head) do
-    --     print(i)
-    -- end
-    -- print(nodes.toutf(par_head))
-    -- print(nodes.tosequence(par_head))
-    -- print("============收集到的夹注条目===============")
-    -- for i, v in ipairs(jiazhu_boxes) do
-    --     print(i, v) --hlist box
-    --     print(nodes.toutf(v))
-    -- end
 
-    -- local hsize = tex.dimen.hsize --tex.sp("20em")
-    local hsize = tex.dimen.textwidth --tex.sp("20em")
-    local vpar_head, info= par_break(par_head_with_rule, hsize)
-    -- print("============主段落重新分行===============")
-    -- print(nodes.tosequence(new_head))
-    -- print("1",nodes.tosequence(new_head.next.head))
-    -- print(node.slide(new_head.next.head))
-    -- print(node.slide(new_head.next.head).prev)
-    -- print("2", nodes.tosequence(new_head.next.next.next.next.head))
-    -- print(node.slide(new_head.next.next.next.next.head))
-    -- print(node.slide(new_head.next.next.next.next.head).prev)
-    -- print(node.slide(new_head.next.next.next.next.head).prev.prev)
+    -- TODO 递归
+    local vpar_head
+    local function find_fist_rule(head_with_rules, boxes)
+        for r in node.traverseid(rule_id, head_with_rules) do
+            if node.hasattribute(r,3,333) then
+                local hsize = tex.dimen.textwidth -- tex.dimen.hsize
+                vpar_head, _= par_break(head_with_rules, hsize)
+                head_with_rules, boxes = insert_jiazhu(head_with_rules, vpar_head, boxes)
+                head_with_rules = find_fist_rule(head_with_rules, boxes)
+            end
+        end
+        return head_with_rules
+    end
+    par_head_with_rule = find_fist_rule(par_head_with_rule, jiazhu_boxes)
 
-    local head_with_jiazhu = insert_jiazhu(par_head_with_rule, vpar_head, jiazhu_boxes)
-
-    return head_with_jiazhu
+    return par_head_with_rule
 end
 
 function Jiazhu.main(head)
     -- 仅处理段落
-    local new_head
     if head.id == par_id then
         local copy_head = node.copylist(head)
-        -- print("=====================")
-        -- print("copy_head", copy_head) --par vmodepar
-        -- print(nodes.toutf(copy_head))
-        -- print(nodes.tosequence(copy_head))
-        
-        new_head = main_trial_typeseting(copy_head)
-        -- node.write(new_head) --写到当前列表后，没有vbox壳，写入会导致混乱
-        context(new_head) --cld，在原输入后输入
-
-        -- head = new_head
-        -- 把head后节点包装到vlist
-        -- local v_node = node.vpack(new_head)
-        -- print(">>>>>>>>>>>>>>>>>>>>>>")
-        -- print("v_node", v_node) --vlist unknown
-        -- print("v_node_head_sq", nodes.tosequence(v_node.head))
-        -- node.write(v_node) --写到当前列表后
-        -- context(v_node) --cld，在原输入后输入
+        local par_head_with_rule = main_trial_typeseting(copy_head)
+        return par_head_with_rule, true
     end
     return head, true
 end

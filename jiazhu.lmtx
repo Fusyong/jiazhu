@@ -72,8 +72,8 @@ jiazhu.register()
 这是正文，这是正文。国
 这是正文，这是正文。
 
-这是正文，这是正文。这是正文，这是\jiazhu{\dorecurse{3}{这是夹注，夹注一。}}
-这是正文，这是正文。\jiazhu{\dorecurse{1}{这是夹注，夹注二。}}
+这是正文，这是正文。这是正文，这是\jiazhu{\dorecurse{2}{这是夹注，夹注一。}}
+这是正文，这是正文。\jiazhu{\dorecurse{2}{这是夹注，夹注二。}}
 这是正文，这是正文。
 
 % jiazhu_hsize    10218000
