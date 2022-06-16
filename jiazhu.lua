@@ -54,8 +54,8 @@ end
 -- 试排主段落 hsize：宽度；to_stretch：尾部拉伸（否则压缩）
 local function par_break(par_head, hsize, to_stretch)
 
-    local new_head =par_head
-    -- local new_head = node.copylist(par_head)
+    -- local new_head =par_head
+    local new_head = node.copylist(par_head)
     local is_vmode_par = (new_head.id == par_id)
 
     if not is_vmode_par then
@@ -134,7 +134,7 @@ local function make_jiazhu_box(hsize, boxes)
     if vbox_width <= (hsize + width_tolerance) then
         local line_num = 3
         while(line_num >= 3) do
-            box_head, info = par_break(node.copylist(b_list), vbox_width, true)
+            box_head, info = par_break(b_list, vbox_width, true)
             line_num = info.prevgraf
             vbox_width = vbox_width + width_tolerance / 2 -- TODO 改进步进量或段末胶
         end
@@ -143,7 +143,7 @@ local function make_jiazhu_box(hsize, boxes)
         -- 死循环导致数据不够用 TODO
         table.remove(boxes, 1)
     else -- 需要循环安排的长盒子
-        box_head, info = par_break(node.copylist(b_list), hsize, false)
+        box_head, info = par_break(b_list, hsize, false)
 
         -- 只取前两行
         local line_num = 0
@@ -175,60 +175,73 @@ end
 local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
     local stop = false
     -- 寻找行，寻找rule
-    local jiazhu_box
     for h,_ in node.traverseid(hlist_id, vpar_head) do
         for r, _ in node.traverseid(rule_id,h.head) do
             if node.hasattribute(r,3,333) then
                 local hsize = jiazhu_hsize(h, r) -- 夹注标记rule到行尾的长度
-                local to_remove
+                local to_remove, jiazhu_box
                 jiazhu_box, jiazhu_boxes, to_remove = make_jiazhu_box(hsize, jiazhu_boxes)
-                head_with_rules, jiazhu_box = node.insertbefore(head_with_rules, r, jiazhu_box)
-                -- 加入罚点（必须断行）
-                local penalty = node.new("penalty")
-                penalty.penalty = -10000
-                head_with_rules, penalty = node.insertafter(head_with_rules, jiazhu_box, penalty)
-                if to_remove then
-                    head_with_rules, _ = node.remove(head_with_rules,r,true)
-                else
-                    local glue = node.new("glue")
-                    glue.width = 0
-                    glue.stretch = tex.sp("0.5em")
-                    head_with_rules, glue = node.insertafter(head_with_rules, penalty, glue)
+                
+                for rule, _ in node.traverseid(rule_id, head_with_rules) do
+                    if node.hasattribute(rule,3,333) then
+                        -- 插入夹注
+                        head_with_rules, jiazhu_box = node.insertbefore(head_with_rules, rule, jiazhu_box)
+                        -- 插入罚点（必须断行）
+                        local penalty = node.new("penalty")
+                        penalty.penalty = -10000
+                        head_with_rules, penalty = node.insertafter(head_with_rules, jiazhu_box, penalty)
+                        -- 移除标记rule
+                        if to_remove then
+                            head_with_rules, _ = node.remove(head_with_rules,rule,true)
+                            -- 或，加胶
+                        else
+                            local glue = node.new("glue")
+                            glue.width = 0
+                            glue.stretch = tex.sp("0.5em")
+                            head_with_rules, glue = node.insertafter(head_with_rules, penalty, glue)
+                        end
+                    end
+                    stop = true
+                    if stop then break end
                 end
-                stop = true
+                
             end
             if stop then break end
         end
         if stop then break end
     end
+
     return head_with_rules, jiazhu_boxes
+end
+
+-- TODO 递归
+local function find_fist_rule(par_head_with_rule, boxes)
+    local n = par_head_with_rule
+    while n do
+        if n.id == rule_id and  node.hasattribute(n,3,333) then
+            local hsize = tex.dimen.textwidth -- tex.dimen.hsize
+
+            -- TODO par_break改变了head_with_rules
+            local vpar_head, _= par_break(par_head_with_rule, hsize, false)
+
+            -- context(node.copylist(vpar_head))
+            par_head_with_rule, boxes = insert_jiazhu(par_head_with_rule, vpar_head, boxes)
+
+            -- return find_fist_rule(par_head_with_rule, boxes)
+        end
+
+        n = n.next
+    end
+    return par_head_with_rule
 end
 
 function Jiazhu.main(head)
     -- 仅处理段落
     if head.id == par_id then
         local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
-
-        -- TODO 递归
-        local vpar_head
-        local function find_fist_rule(head_with_rules, boxes)
-            
-            for r in node.traverseid(rule_id, head_with_rules) do
-                if node.hasattribute(r,3,333) then
-                    local hsize = tex.dimen.textwidth -- tex.dimen.hsize
-
-                    -- TODO par_break改变了head_with_rules
-                    vpar_head, _= par_break(head_with_rules, hsize)
-                    context(node.copylist(vpar_head))
-                    head_with_rules, boxes = insert_jiazhu(head_with_rules, vpar_head, boxes)
-                    
-                    return find_fist_rule(head_with_rules, boxes)
-                end
-            end
-            return head_with_rules
+        if jiazhu_boxes then
+            par_head_with_rule = find_fist_rule(par_head_with_rule, jiazhu_boxes)
         end
-        par_head_with_rule = find_fist_rule(par_head_with_rule, jiazhu_boxes)
-
         return par_head_with_rule, true --替代原文
     else
         return head, true
