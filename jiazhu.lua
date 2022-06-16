@@ -13,6 +13,7 @@ local whatsit_id = nodes.nodecodes.whatsit
 
 local function show_detail(n, label) 
     print(">>>>>>>>>"..label.."<<<<<<<<<<")
+    print(nodes.toutf(n))
     for i in node.traverse(n) do
         local char
         if i.id == glyph_id then
@@ -23,7 +24,7 @@ local function show_detail(n, label)
         elseif i.id == glue_id then
             print(i, i.width, i.stretch, i.shrink)
         elseif i.id == hlist_id then
-            print(i, nodes.toutf(i))
+            print(i, nodes.toutf(i.list))
         else
             print(i)
         end
@@ -53,7 +54,8 @@ end
 -- 试排主段落 hsize：宽度；to_stretch：尾部拉伸（否则压缩）
 local function par_break(par_head, hsize, to_stretch)
 
-    local new_head = par_head
+    local new_head =par_head
+    -- local new_head = node.copylist(par_head)
     local is_vmode_par = (new_head.id == par_id)
 
     if not is_vmode_par then
@@ -99,10 +101,10 @@ local function par_break(par_head, hsize, to_stretch)
     -- 用hsize控制分行宽度：{hsize =  tex.sp("25em")}；
     -- 语言设置作用不详：{lang = tex.language}
     local para = {hsize=hsize,tracingparagraphs=1}
-    local info
-    new_head, info = tex.linebreak(new_head, para)
 
-    return new_head, info
+    local out_head, info = tex.linebreak(new_head, para)
+
+    return out_head, info
 end
 
 -- 测量夹注宽度
@@ -136,13 +138,33 @@ local function make_jiazhu_box(hsize, boxes)
             line_num = info.prevgraf
             vbox_width = vbox_width + width_tolerance / 2 -- TODO 改进步进量或段末胶
         end
-        -- TODO 盒子打包
         box_head = node.vpack(box_head)
         to_remove = true
+        -- 死循环导致数据不够用 TODO
         table.remove(boxes, 1)
     else -- 需要循环安排的长盒子
         box_head, info = par_break(node.copylist(b_list), hsize, false)
-        -- TODO 盒子打包，剪裁box
+
+        -- 只取前两行
+        local line_num = 0
+        local glyph_num = 0
+        for i in node.traverseid(hlist_id, box_head) do
+            line_num = line_num + 1
+            glyph_num = glyph_num + node.count(glyph_id, i.head)
+            if line_num == 2 then
+                box_head = node.copylist(box_head, i.next)
+                break
+            end
+        end
+        -- 截取未用的盒子列表
+        for i in node.traverseid(glyph_id, b_list) do
+            glyph_num = glyph_num - 1
+            if glyph_num == -1 then
+                boxes[1].list = node.copylist(i)
+            end
+        end
+
+        box_head = node.vpack(box_head)
         to_remove = false
     end
 
@@ -160,14 +182,18 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
                 local hsize = jiazhu_hsize(h, r) -- 夹注标记rule到行尾的长度
                 local to_remove
                 jiazhu_box, jiazhu_boxes, to_remove = make_jiazhu_box(hsize, jiazhu_boxes)
-                -- TODO 插入
                 head_with_rules, jiazhu_box = node.insertbefore(head_with_rules, r, jiazhu_box)
+                -- 加入罚点（必须断行）
                 local penalty = node.new("penalty")
-                penalty.penalty = -100000
+                penalty.penalty = -10000
                 head_with_rules, penalty = node.insertafter(head_with_rules, jiazhu_box, penalty)
-
                 if to_remove then
                     head_with_rules, _ = node.remove(head_with_rules,r,true)
+                else
+                    local glue = node.new("glue")
+                    glue.width = 0
+                    glue.stretch = tex.sp("0.5em")
+                    head_with_rules, glue = node.insertafter(head_with_rules, penalty, glue)
                 end
                 stop = true
             end
@@ -178,43 +204,35 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
     return head_with_rules, jiazhu_boxes
 end
 
--- 分析分行结果
--- 分拆、组合夹注盒子
-
--- 把夹注盒子插会列表
-
-
--- 试排主段落：
-local function main_trial_typeseting(head)
-
-    local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
-
-    -- TODO 递归
-    local vpar_head
-    local function find_fist_rule(head_with_rules, boxes)
-        for r in node.traverseid(rule_id, head_with_rules) do
-            if node.hasattribute(r,3,333) then
-                local hsize = tex.dimen.textwidth -- tex.dimen.hsize
-                vpar_head, _= par_break(head_with_rules, hsize)
-                head_with_rules, boxes = insert_jiazhu(head_with_rules, vpar_head, boxes)
-                head_with_rules = find_fist_rule(head_with_rules, boxes)
-            end
-        end
-        return head_with_rules
-    end
-    par_head_with_rule = find_fist_rule(par_head_with_rule, jiazhu_boxes)
-
-    return par_head_with_rule
-end
-
 function Jiazhu.main(head)
     -- 仅处理段落
     if head.id == par_id then
-        local copy_head = node.copylist(head)
-        local par_head_with_rule = main_trial_typeseting(copy_head)
-        return par_head_with_rule, true
+        local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
+
+        -- TODO 递归
+        local vpar_head
+        local function find_fist_rule(head_with_rules, boxes)
+            
+            for r in node.traverseid(rule_id, head_with_rules) do
+                if node.hasattribute(r,3,333) then
+                    local hsize = tex.dimen.textwidth -- tex.dimen.hsize
+
+                    -- TODO par_break改变了head_with_rules
+                    vpar_head, _= par_break(head_with_rules, hsize)
+                    context(node.copylist(vpar_head))
+                    head_with_rules, boxes = insert_jiazhu(head_with_rules, vpar_head, boxes)
+                    
+                    return find_fist_rule(head_with_rules, boxes)
+                end
+            end
+            return head_with_rules
+        end
+        par_head_with_rule = find_fist_rule(par_head_with_rule, jiazhu_boxes)
+
+        return par_head_with_rule, true --替代原文
+    else
+        return head, true
     end
-    return head, true
 end
 
 function Jiazhu.register()
