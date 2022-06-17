@@ -56,8 +56,8 @@
 }
 
 %%%%% 显式视觉调试信息 %%%%
-\showboxes
-\showframe
+% \showboxes
+% \showframe
 % \showmakeup
 
 %%%%%%%%%%%%% 回调模块 %%%%%%%%%%%%%
@@ -69,8 +69,8 @@ jiazhu.register()
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \starttext
 
-这是正文，这是正文。这是正文，这是\jiazhu{\dorecurse{2}{这是夹注，夹注一。}}
-这是正文，这是正文。\jiazhu{\dorecurse{32}{这是夹注，夹注二。}}
+这是正文，这是正文。这是正文，这是\jiazhu{\dorecurse{5}{这是夹注，夹注一。}}
+这是正文，这是正文。\jiazhu{\dorecurse{5}{这是夹注，夹注二。}}
 这是正文，这是正文。
 
 % jiazhu_hsize    10218000

@@ -54,7 +54,6 @@ end
 -- 试排主段落 hsize：宽度；to_stretch：尾部拉伸（否则压缩）
 local function par_break(par_head, hsize, to_stretch)
 
-    -- local new_head =par_head
     local new_head = node.copylist(par_head)
     local is_vmode_par = (new_head.id == par_id)
 
@@ -122,12 +121,16 @@ end
 -- 生成双行夹注
 local function make_jiazhu_box(hsize, boxes)
     local b = boxes[1]
-    local box_width =b.width -- 对应的夹注盒子宽度
+    local box_width = jiazhu_hsize(b, b.head)  -- 实际测量宽度，不适用width属性
+    print("=========",b.width )
+    print("=========",box_width )
+
     local b_list = b.list
     local to_remove -- 本条已经完成，需要移除
 
     -- 夹注重排算法
-    local width_tolerance = tex.sp("0.5em") -- 宽容宽度（挤进一行）；兼步进控制
+    local width_tolerance = tex.sp("0.5em") -- 宽容宽度（挤进一行）
+    local step = width_tolerance / 4 --兼步进控制
     local vbox_width = box_width / 2
     local box_head, info
     -- 可一次（两行）安排完的短盒子
@@ -136,7 +139,7 @@ local function make_jiazhu_box(hsize, boxes)
         while(line_num >= 3) do
             box_head, info = par_break(b_list, vbox_width, true)
             line_num = info.prevgraf
-            vbox_width = vbox_width + width_tolerance / 2 -- TODO 改进步进量或段末胶
+            vbox_width = vbox_width + step -- TODO 改进步进量或段末胶
         end
         box_head = node.vpack(box_head)
         to_remove = true
@@ -160,7 +163,8 @@ local function make_jiazhu_box(hsize, boxes)
         for i in node.traverseid(glyph_id, b_list) do
             glyph_num = glyph_num - 1
             if glyph_num == -1 then
-                boxes[1].list = node.copylist(i)
+                local hlist = node.hpack(node.copylist(i))
+                boxes[1] = hlist
             end
         end
 
@@ -188,7 +192,7 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
                         head_with_rules, jiazhu_box = node.insertbefore(head_with_rules, rule, jiazhu_box)
                         -- 插入罚点（必须断行）
                         local penalty = node.new("penalty")
-                        penalty.penalty = -10000
+                        penalty.penalty = 0
                         head_with_rules, penalty = node.insertafter(head_with_rules, jiazhu_box, penalty)
                         -- 移除标记rule
                         if to_remove then
@@ -227,7 +231,7 @@ local function find_fist_rule(par_head_with_rule, boxes)
             -- context(node.copylist(vpar_head))
             par_head_with_rule, boxes = insert_jiazhu(par_head_with_rule, vpar_head, boxes)
 
-            -- return find_fist_rule(par_head_with_rule, boxes)
+            return find_fist_rule(par_head_with_rule, boxes)
         end
 
         n = n.next
