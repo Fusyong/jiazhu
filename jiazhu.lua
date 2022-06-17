@@ -7,10 +7,7 @@ local glue_id = nodes.nodecodes.glue --node.id("glue")
 local glyph_id = nodes.nodecodes.glyph
 local hlist_id = nodes.nodecodes.hlist
 local par_id = nodes.nodecodes.par
-local penalty_id = nodes.nodecodes.penalty
 local rule_id = nodes.nodecodes.rule
-local vlist_id = nodes.nodecodes.vlist
-local whatsit_id = nodes.nodecodes.whatsit
 
 local node_copylist = node.copylist
 local node_count = node.count
@@ -26,7 +23,6 @@ local node_new = node.new
 local node_remove = node.remove
 local node_setattribute = node.setattribute
 local node_slide = node.slide
-local node_traverse = node.traverse
 local node_traverseid = node.traverseid
 local node_vpack = node.vpack
 
@@ -38,7 +34,7 @@ local tex_sp = tex.sp
 local function show_detail(n, label) 
     print(">>>>>>>>>"..label.."<<<<<<<<<<")
     print(nodes.toutf(n))
-    for i in node_traverse(n) do
+    for i in node.traverse(n) do
         local char
         if i.id == glyph_id then
             char = utf8.char(i.char)
@@ -66,13 +62,14 @@ local function boxes_to_rules(head)
             w.width = tex_sp("1em")
             node_setattribute(w, 3, 333)
             head = node_insertbefore(head, n, w)
-            local removed = nil
+            local removed
             head, n, removed = node_remove(head, n)
             table.insert(jiazhu_boxes, removed)
         end
         n = n.next
     end
 
+    node_flushlist(n)
     return head, jiazhu_boxes
 end
 
@@ -80,6 +77,7 @@ end
 local function par_break(par_head, hsize, to_stretch)
 
     local new_head = node_copylist(par_head)
+
     local is_vmode_par = (new_head.id == par_id)
 
     if not is_vmode_par then
@@ -125,10 +123,10 @@ local function par_break(par_head, hsize, to_stretch)
     -- 用hsize控制分行宽度：{hsize =  tex_sp("25em")}；
     -- 语言设置作用不详：{lang = tex.language}
     local para = {hsize=hsize,tracingparagraphs=1}
+    local info
+    new_head, info = tex_linebreak(new_head, para)
 
-    local out_head, info = tex_linebreak(new_head, para)
-
-    return out_head, info
+    return new_head, info
 end
 
 -- 测量夹注宽度
@@ -147,7 +145,7 @@ end
 local function make_jiazhu_box(hsize, boxes)
     local b = boxes[1]
     local box_width = jiazhu_hsize(b, b.head)  -- 实际测量宽度，不适用width属性
-
+    -- show_detail(b.head,"here")
     local b_list = b.list
     local to_remove -- 本条已经完成，需要移除
     local to_break_after = false -- 本条在行末，需要断行
@@ -175,6 +173,7 @@ local function make_jiazhu_box(hsize, boxes)
         end
         -- 清除rule标记
         to_remove = true
+        node_flushlist(boxes[1].head)
         table.remove(boxes, 1)
     else -- 需要循环安排的长盒子
         box_head, info = par_break(b_list, hsize, false)
@@ -195,6 +194,7 @@ local function make_jiazhu_box(hsize, boxes)
             glyph_num = glyph_num - 1
             if glyph_num == -1 then
                 local hlist = node_hpack(node_copylist(i))
+                node_flushlist(boxes[1].head)
                 boxes[1] = hlist
             end
         end
@@ -247,17 +247,12 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
                             head_with_rules, glue = node_insertafter(head_with_rules, penalty, glue)
                         end
                     end
-                    -- stop = true
-                    -- if stop then break end
+                    node_flushlist(vpar_head)
                     return head_with_rules, jiazhu_boxes
                 end
-                
             end
-            -- if stop then break end
         end
-        -- if stop then break end
     end
-    -- return head_with_rules, jiazhu_boxes
 end
 
 -- TODO 递归
@@ -275,9 +270,10 @@ local function find_fist_rule(par_head_with_rule, boxes)
 
             return find_fist_rule(par_head_with_rule, boxes)
         end
-
+        
         n = n.next
     end
+    node_flushlist(n)
     return par_head_with_rule
 end
 
