@@ -49,8 +49,7 @@
 % \usemodule[zhspuncs]
 
 \define[1]\jiazhu{%
-    \hskip 0pt plus 0.5em%
-    %与系统插入的字间胶一致，相当于g.stretch=0.5 * font.fonts[t.font].size
+    \hskip 0pt plus 0.5em%与系统插入的字间胶一致，相当于g.stretch=0.5 * font.fonts[t.font].size
     \hbox attr 2 = 222 {\itxx #1}%
     \hskip 0pt plus 0.5em%
 }
@@ -62,25 +61,43 @@
 
 %%%%%%%%%%%%% 回调模块 %%%%%%%%%%%%%
 \startluacode
+
+---[[
 local jiazhu = require("jiazhu.lua")
 jiazhu.register()
+--]]
+
+--[[
+-- 使用本地中文标点压缩模块
+local zhspuncs = require("../zhfonts/t-zhspuncs.lua")
+zhspuncs.opt() --moduledata.zhspuncs.opt()
+--]]
+
+--[[ 使用直排模块
+local vertical_typeset = require("../vertical-typesetting/vertical_typeset.lua")
+vertical_typeset.opt()--moduledata.vertical_typese.opt()
+--]]
+
 \stopluacode
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \starttext
 
-这是正文，这是正文。这是正文，这是\jiazhu{\dorecurse{5}{这是夹注，夹注一。}}
-这是正文，这是正文。\jiazhu{\dorecurse{5}{这是夹注，夹注二。}}
-这是正文，这是正文。
+这是正文，这是正文。这是正文，这\jiazhu{\dorecurse{2}{这是夹注，夹注一。}}
+这是正文，这是正文。\jiazhu{\dorecurse{4}{这是夹注，夹注二。}}这是正文，这是正文。
+这是正文，这是正文。\jiazhu{\dorecurse{4}{这是夹注，夹注二。}}这是正文，这是正文。
+这是正文，这是正文。\jiazhu{\dorecurse{10}{这是夹注，夹注二。}}这是正文，这是正文。
+这是正文，这是正文。\jiazhu{\dorecurse{25}{这是夹注，夹注二。}}这是正文，这是正文。
+这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。
+这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。
 
-% jiazhu_hsize    10218000
-% box_width       4716000
-% 9em     7074000
-% jiazhu_hsize    786000
-% box_width       4716000
-% 9em     7074000
-
-% \dorecurse{30}{hello there, hello world! }
+这是正文，这是正文。这是正文，这\jiazhu{\dorecurse{2}{这是夹注，夹注一。}}
+这是正文，这是正文。\jiazhu{\dorecurse{4}{这是夹注，夹注二。}}这是正文，这是正文。
+这是正文，这是正文。\jiazhu{\dorecurse{4}{这是夹注，夹注二。}}这是正文，这是正文。
+这是正文，这是正文。\jiazhu{\dorecurse{10}{这是夹注，夹注二。}}这是正文，这是正文。
+这是正文，这是正文。\jiazhu{\dorecurse{25}{这是夹注，夹注二。}}这是正文，这是正文。
+这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。
+这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。这是正文，这是正文。
 
 \stoptext
 
