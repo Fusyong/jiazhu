@@ -15,6 +15,7 @@ local whatsit_id = nodes.nodecodes.whatsit
 local node_copylist = node.copylist
 local node_count = node.count
 local node_dimensions = node.dimensions
+local node_flushlist = node.flushlist
 local node_hasattribute = node.hasattribute
 local node_hpack = node.hpack
 local node_insertafter = node.insertafter
