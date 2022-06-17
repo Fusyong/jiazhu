@@ -214,7 +214,7 @@ end
 
 -- 根据第一个rule的位置分拆、组合、插入夹注盒子、罚点等
 local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
-    local stop = false
+    -- local stop = false
     -- 寻找行，寻找rule
     for h,_ in node_traverseid(hlist_id, vpar_head) do
         for r, _ in node_traverseid(rule_id,h.head) do
@@ -246,17 +246,17 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
                             head_with_rules, glue = node_insertafter(head_with_rules, penalty, glue)
                         end
                     end
-                    stop = true
-                    if stop then break end
+                    -- stop = true
+                    -- if stop then break end
+                    return head_with_rules, jiazhu_boxes
                 end
                 
             end
-            if stop then break end
+            -- if stop then break end
         end
-        if stop then break end
+        -- if stop then break end
     end
-
-    return head_with_rules, jiazhu_boxes
+    -- return head_with_rules, jiazhu_boxes
 end
 
 -- TODO 递归
