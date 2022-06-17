@@ -23,6 +23,7 @@ local node_new = node.new
 local node_remove = node.remove
 local node_setattribute = node.setattribute
 local node_slide = node.slide
+local node_traverse = node.traverse
 local node_traverseid = node.traverseid
 local node_vpack = node.vpack
 
@@ -30,7 +31,7 @@ local tex_dimen_textwidth = tex.dimen.textwidth
 local tex_linebreak = tex.linebreak
 local tex_sp = tex.sp
 
----[[ 结点跟踪工具
+--[[ 结点跟踪工具
 local function show_detail(n, label) 
     print(">>>>>>>>>"..label.."<<<<<<<<<<")
     print(nodes.toutf(n))
@@ -56,6 +57,8 @@ end
 local function boxes_to_rules(head)
     local n = head
     local jiazhu_boxes = {}
+    local done = false
+    local out_head = nil
     while n do
         if node_hasattribute(n, 2, 222) and n.id == hlist_id then
             local w = node_new(rule_id)
@@ -65,12 +68,15 @@ local function boxes_to_rules(head)
             local removed
             head, n, removed = node_remove(head, n)
             table.insert(jiazhu_boxes, removed)
+            done = true
         end
         n = n.next
     end
-
+    if done then
+        out_head = head
+    end
     node_flushlist(n)
-    return head, jiazhu_boxes
+    return out_head, jiazhu_boxes
 end
 
 -- 试排主段落 hsize：宽度；to_stretch：尾部拉伸（否则压缩）
@@ -183,19 +189,23 @@ local function make_jiazhu_box(hsize, boxes)
         local glyph_num = 0
         for i in node_traverseid(hlist_id, box_head) do
             line_num = line_num + 1
+            -- TODO 计数优化
             glyph_num = glyph_num + node_count(glyph_id, i.head)
+            glyph_num = glyph_num + node_count(hlist_id, i.head)
             if line_num == 2 then
                 box_head = node_copylist(box_head, i.next)
                 break
             end
         end
-        -- 截取未用的盒子列表
-        for i in node_traverseid(glyph_id, b_list) do
-            glyph_num = glyph_num - 1
-            if glyph_num == -1 then
-                local hlist = node_hpack(node_copylist(i))
-                node_flushlist(boxes[1].head)
-                boxes[1] = hlist
+        -- 截取未用的盒子列表  TODO 相应优化
+        for i in node_traverse(b_list) do
+            if i.id == glyph_id or i.id == hlist_id then
+                glyph_num = glyph_num - 1
+                if glyph_num == -1 then
+                    local hlist = node_hpack(node_copylist(i))
+                    node_flushlist(boxes[1].head)
+                    boxes[1] = hlist
+                end
             end
         end
         to_break_after = true
@@ -278,16 +288,15 @@ local function find_fist_rule(par_head_with_rule, boxes)
 end
 
 function Moduledata.jiazhu.main(head)
+    local out_head = head
     -- 仅处理段落
     if head.id == par_id then
         local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
-        if jiazhu_boxes then
-            local new_head = find_fist_rule(par_head_with_rule, jiazhu_boxes)
-            return new_head, true --替代原文
+        if par_head_with_rule then
+            out_head = find_fist_rule(par_head_with_rule, jiazhu_boxes)
         end
-    else
-        return head, true
     end
+    return out_head, true
 end
 
 function Moduledata.jiazhu.register()

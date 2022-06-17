@@ -7,8 +7,8 @@
 
 术语参考[CTeX-org](https://github.com/CTeX-org/ctex-kit/blob/master/jiazhu/jiazhu.dtx)：
 
-> `jiazhu`: splitted annotation or
-inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū in Japanese.
+> jiazhu(in Hanyu Pinyin): splitted annotation or
+inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū in Japanese
 
 ## 大致思路
 
@@ -27,12 +27,15 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
 * [x] 夹注转换成标记结点和数据表
 * [x] 夹注整理，分段插入
 * [x] 调整夹注排式
-* [ ] 与直排模块整合
-   * [ ] 长夹注（78字以上）内存溢出
+* [x] 与直排模块整合
+   * [x] 长夹注（78字以上）内存溢出，死循环
       * [x] 无用结点清洗
+      * [X] 计数考虑直排盒子（**问题在此**）
 * [ ] 模块化，增加用户接口
+* [ ] parfillskip
+   * 不起作用（目前用自定glue代替）
+   * 并影响标点压缩模块（同样内容的两行不整齐）
 * [ ] 优化夹注断行（目前每次重新断行后取前两行，往往质量较低，或可使用parshape一次完成分组）
-* [ ] parfillskip不起作用（目前用自定glue代替）
 
 # 关于断行、分段的备用资料
 
