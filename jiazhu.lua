@@ -7,7 +7,9 @@ local glue_id = nodes.nodecodes.glue --node.id("glue")
 local glyph_id = nodes.nodecodes.glyph
 local hlist_id = nodes.nodecodes.hlist
 local par_id = nodes.nodecodes.par
+local penalty_id = nodes.nodecodes.penalty
 local rule_id = nodes.nodecodes.rule
+local vlist_id = nodes.nodecodes.vlist
 
 local node_copylist = node.copylist
 local node_count = node.count
@@ -31,7 +33,7 @@ local tex_dimen_textwidth = tex.dimen.textwidth
 local tex_linebreak = tex.linebreak
 local tex_sp = tex.sp
 
---[[ 结点跟踪工具
+---[[ 结点跟踪工具
 local function show_detail(n, label) 
     print(">>>>>>>>>"..label.."<<<<<<<<<<")
     print(nodes.toutf(n))
@@ -187,6 +189,7 @@ local function make_jiazhu_box(hsize, boxes)
         -- 只取前两行
         local line_num = 0
         local glyph_num = 0
+        local new_head --第三行的开头
         for i in node_traverseid(hlist_id, box_head) do
             line_num = line_num + 1
             -- TODO 计数优化
@@ -194,10 +197,26 @@ local function make_jiazhu_box(hsize, boxes)
             glyph_num = glyph_num + node_count(hlist_id, i.head)
             if line_num == 2 then
                 box_head = node_copylist(box_head, i.next)
+                break --计数法
+            end
+
+            -- 定位法
+            if line_num == 3 then
+                for j in node_traverse(i.list) do
+                    -- 定位类型，hlist_id为匹配竖排插件生成的单字盒子，vlist_id预留
+                    if j.id == glyph_id or j.id == hlist_id or j.id == vlist_id then
+                        new_head = j
+                        print('=====',j)
+                        break
+                    end
+                end
                 break
             end
+
         end
         -- 截取未用的盒子列表  TODO 相应优化
+
+        -- 计数版本
         for i in node_traverse(b_list) do
             if i.id == glyph_id or i.id == hlist_id then
                 glyph_num = glyph_num - 1
@@ -208,6 +227,12 @@ local function make_jiazhu_box(hsize, boxes)
                 end
             end
         end
+
+        -- -- -- 定位法  TODO 有错误
+        -- local hlist = node_hpack(node_copylist(new_head))
+        -- node_flushlist(boxes[1].head)
+        -- boxes[1] = hlist
+
         to_break_after = true
         to_remove = false
     end

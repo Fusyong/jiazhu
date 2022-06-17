@@ -13,7 +13,7 @@
 
 % 汉字字体配置
 \usetypescriptfile[mscore]
-\usebodyfont   [mschinese,12pt]
+\usebodyfont   [mschinese,15pt]
 % \usebodyfont   [mschinese-light,12pt]
 % \setupbodyfont [mschinese-literate,12pt]
 % \usebodyfont   [mschinese-literate,12pt]
@@ -67,7 +67,7 @@ local jiazhu = require("jiazhu.lua")
 jiazhu.register()
 --]]
 
----[[
+--[[
 -- 使用本地中文标点压缩模块
 local zhspuncs = require("../zhfonts/t-zhspuncs.lua")
 zhspuncs.opt() --moduledata.zhspuncs.opt()
