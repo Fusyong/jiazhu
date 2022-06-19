@@ -15,6 +15,7 @@ local node_copylist = node.copylist
 local node_count = node.count
 local node_dimensions = node.dimensions
 local node_flushlist = node.flushlist
+local node_free = node.free
 local node_hasattribute = node.hasattribute
 local node_hpack = node.hpack
 local node_insertafter = node.insertafter
@@ -97,6 +98,7 @@ local function par_break(par_head, hsize, to_stretch)
     local tail = node_slide(new_head) --node.tail()不检查前后指针
     if tail.id == glue_id then
         new_head, tail = node_remove(new_head, tail, true)
+        node_free(tail)
     end
 
     -- 添加无限罚分
@@ -130,7 +132,12 @@ local function par_break(par_head, hsize, to_stretch)
     
     -- 用hsize控制分行宽度：{hsize =  tex_sp("25em")}；
     -- 语言设置作用不详：{lang = tex.language}
-    local para = {hsize=hsize,tracingparagraphs=1}
+    -- , lefskip = leftskip_spec 不起作用
+    -- local leftskip_spec = node_new("gluespec")
+    -- leftskip_spec.width = tex_sp("5em")
+    -- leftskip_spec.stretch = tex_sp("5em")
+    -- leftskip_spec.stretchorder = 2
+    local para = {hsize=hsize}
     local info
     new_head, info = tex_linebreak(new_head, para)
 
@@ -159,7 +166,7 @@ local function make_jiazhu_box(hsize, boxes)
     local to_break_after = false -- 本条在行末，需要断行
 
     -- 夹注重排算法
-    local width_tolerance = tex_sp("0.5em") -- 宽容宽度（挤进一行）
+    local width_tolerance = tex_sp("0.4em") -- 宽容宽度（挤进一行）
     local max_hsize = hsize + width_tolerance
     local min_hsize = hsize - width_tolerance
     local step = width_tolerance / 4 --步进控制 TODO 优化
@@ -200,18 +207,18 @@ local function make_jiazhu_box(hsize, boxes)
                 break --计数法
             end
 
-            -- 定位法
-            if line_num == 3 then
-                for j in node_traverse(i.list) do
-                    -- 定位类型，hlist_id为匹配竖排插件生成的单字盒子，vlist_id预留
-                    if j.id == glyph_id or j.id == hlist_id or j.id == vlist_id then
-                        new_head = j
-                        print('=====',j)
-                        break
-                    end
-                end
-                break
-            end
+            -- -- 定位法
+            -- if line_num == 3 then
+            --     for j in node_traverse(i.list) do
+            --         -- 定位类型，hlist_id为匹配竖排插件生成的单字盒子，vlist_id预留
+            --         if j.id == glyph_id or j.id == hlist_id or j.id == vlist_id then
+            --             new_head = j
+            --             print('=====',j)
+            --             break
+            --         end
+            --     end
+            --     break
+            -- end
 
         end
         -- 截取未用的盒子列表  TODO 相应优化
@@ -228,7 +235,7 @@ local function make_jiazhu_box(hsize, boxes)
             end
         end
 
-        -- -- -- 定位法  TODO 有错误
+        -- -- -- 定位法  TODO 有错误(怎么确定拷贝的new_head是在那个列表中？？？)
         -- local hlist = node_hpack(node_copylist(new_head))
         -- node_flushlist(boxes[1].head)
         -- boxes[1] = hlist
@@ -258,7 +265,6 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
                 local hsize = jiazhu_hsize(h, r) -- 夹注标记rule到行尾的长度
                 local to_remove, jiazhu_box, to_break_after
                 jiazhu_box, jiazhu_boxes, to_remove, to_break_after = make_jiazhu_box(hsize, jiazhu_boxes)
-                
                 for rule, _ in node_traverseid(rule_id, head_with_rules) do
                     if node_hasattribute(rule,3,333) then
                         -- 插入夹注
@@ -273,18 +279,19 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
                         head_with_rules, penalty = node_insertafter(head_with_rules, jiazhu_box, penalty)
                         -- 移除标记rule
                         if to_remove then
-                            head_with_rules, _ = node_remove(head_with_rules,rule,true)
-                            -- 或，加胶
+                            head_with_rules, rule = node_remove(head_with_rules,rule,true)
                         else
+                            -- 或，加胶
                             local glue = node_new("glue")
                             glue.width = 0
                             glue.stretch = tex_sp("0.5em")
                             head_with_rules, glue = node_insertafter(head_with_rules, penalty, glue)
                         end
+                        node_flushlist(vpar_head)
+                        return head_with_rules, jiazhu_boxes
                     end
-                    node_flushlist(vpar_head)
-                    return head_with_rules, jiazhu_boxes
                 end
+                print("jiazhu>> 没有找到插入标记。")
             end
         end
     end
@@ -315,12 +322,12 @@ end
 function Moduledata.jiazhu.main(head)
     local out_head = head
     -- 仅处理段落
-    if head.id == par_id then
+    -- if head.id == par_id then
         local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
         if par_head_with_rule then
             out_head = find_fist_rule(par_head_with_rule, jiazhu_boxes)
         end
-    end
+    -- end
     return out_head, true
 end
 
