@@ -1,9 +1,17 @@
 
-# jiazhu
+*这里的更新会比较慢，更新的详情请看[项目的GitHub代码库](https://github.com/Fusyong/jiazhu)*
 
-适用于LuaMetaTeX(LMTX)的夹注模块。调整后应该可用于LuaTeX。
+适用于ConTeXt和LuaMetaTeX(LMTX， LuaTeX的后继者，ConTeXt当前的实际引擎)的夹注模块，可以配合[竖排功能和标点压缩功能](https://blog.xiiigame.com/2022-02-15-ConTeXt-LMTX%E4%B8%AD%E6%96%87%E7%AB%96%E6%8E%92%E6%8F%92%E4%BB%B6/)使用。调整后应该可用于LuaTeX。
 
 也是本人学习LuaMetaTeX、LuaTeX的练习项目，主要涉及：段落与行的结点列表的操控；使用tex.linebreak()函数等干预断行；使用回调函数。会保留较多学习性的注释和代码。
+
+## 效果
+
+![](https://blog.xiiigame.com/img/2022-06-19-ConTeXt%E5%8F%8C%E8%A1%8C%E5%A4%B9%E6%B3%A8%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/2022-06-19-17-18-08.png)
+
+![](https://blog.xiiigame.com/img/2022-06-19-ConTeXt%E5%8F%8C%E8%A1%8C%E5%A4%B9%E6%B3%A8%E7%9A%84%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/2022-06-19-17-18-08.png)
+
+## 术语
 
 术语参考[CTeX-org](https://github.com/CTeX-org/ctex-kit/blob/master/jiazhu/jiazhu.dtx)：
 
