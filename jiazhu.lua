@@ -196,7 +196,6 @@ local function make_jiazhu_box(hsize, boxes)
         -- 只取前两行
         local line_num = 0
         local glyph_num = 0
-        local new_head --第三行的开头
         for i in node_traverseid(hlist_id, box_head) do
             line_num = line_num + 1
             -- TODO 计数优化
@@ -206,20 +205,6 @@ local function make_jiazhu_box(hsize, boxes)
                 box_head = node_copylist(box_head, i.next)
                 break --计数法
             end
-
-            -- -- 定位法
-            -- if line_num == 3 then
-            --     for j in node_traverse(i.list) do
-            --         -- 定位类型，hlist_id为匹配竖排插件生成的单字盒子，vlist_id预留
-            --         if j.id == glyph_id or j.id == hlist_id or j.id == vlist_id then
-            --             new_head = j
-            --             print('=====',j)
-            --             break
-            --         end
-            --     end
-            --     break
-            -- end
-
         end
         -- 截取未用的盒子列表  TODO 相应优化
 
@@ -235,22 +220,36 @@ local function make_jiazhu_box(hsize, boxes)
             end
         end
 
-        -- -- -- 定位法  TODO 有错误(怎么确定拷贝的new_head是在那个列表中？？？)
-        -- local hlist = node_hpack(node_copylist(new_head))
-        -- node_flushlist(boxes[1].head)
-        -- boxes[1] = hlist
-
         to_break_after = true
         to_remove = false
     end
 
     -- 打包，修改包的高度和行距
     box_head = node_vpack(box_head)
-    for n in node_traverseid(glue_id, box_head.head) do
-        n.width = 0
+    local skip = tex_sp("0.1em") -- 夹注行间距
+    local sub_glue_h = 0 -- 计算删除的胶高度
+    local n = box_head.head
+    local count = 0
+    while n do
+        if n.id == glue_id then
+            count = count + 1
+            if count == 1 then
+                sub_glue_h = sub_glue_h + n.width
+                box_head.head, n = node_remove(box_head.head, n, true)
+            else
+                sub_glue_h = sub_glue_h + (n.width - skip)
+                n.width = skip
+                n = n.next
+            end
+        else
+            n = n.next
+        end
     end
-    box_head.height = tex_sp("0.9em")
-    box_head.depth = tex_sp("0.1em")
+
+    local box_head_height = box_head.height - sub_glue_h
+    local baseline_to_center =  tex_sp("0.4em") -- TODO 应根据字体数据计算
+    box_head.height = baseline_to_center + box_head_height/ 2
+    box_head.depth = box_head_height - box_head.height
 
     return box_head, boxes, to_remove, to_break_after
 end
