@@ -13,7 +13,7 @@
 
 % 汉字字体配置
 \usetypescriptfile[mscore]
-\usebodyfont   [mschinese,21pt]
+\usebodyfont   [mschinese,20pt]
 % \usebodyfont   [mschinese-light,12pt]
 % \setupbodyfont [mschinese-literate,12pt]
 % \usebodyfont   [mschinese-literate,12pt]
@@ -50,10 +50,12 @@
 % \usemodule[zhspuncs]
 
 % 双行夹注
+\newdimen\jiazhsize
+\jiazhsize=10.5pt
 \define[1]\jiazh{%
-    %\hskip 0pt plus 0.5em%与系统插入的中文字间胶一致
-    \hbox attr 2 = 222 {\tf\switchtobodyfont[10.5pt]#1}%
-    \hskip 0pt plus 0.5em%
+    \hskip 0pt plus 0.5em%与系统插入的中文字间胶一致
+    \hbox attr 2 = 222 {\tf\switchtobodyfont[\the\jiazhsize]#1}%
+    % \hskip 0pt plus 0.5em% 使用后间距过小
 }
 
 % 章句
@@ -68,11 +70,14 @@
 
 % 专名号
 \definebar[zhuanmh][underbar][offset=-0.25, unit=em,rulethickness=0.1mm]
+
 % 竖排书名号两种
-\definefont[tidebar][name:stsong*default at 9.39pt] % 21pt正文对应9.39pt（1对3）
-\definebar[shumh][text=\lower\exheight\hbox{\tidebar\rotate[rotation=-10]{～\kern-0.31em}}, repeat=yes, continue=yes, offset=-0.25]
-\definefont[tidebars][name:stsong*default at 7.04pt] % 10.5pt正文对应7.04pt（1对2）
-\definebar[shumhs][text=\lower\exheight\hbox{\tidebars\rotate[rotation=-10]{～\kern-0.31em}}, repeat=yes, continue=yes, offset=-0.25]
+% 1对3，适合大字号: 如21pt正文对应0.455em
+\definefont[tidebar][name:stsong*default at 0.455em]
+\definebar[shumh][text=\lower\exheight\hbox{\tidebar\rotate[rotation=-9]{\kern-0.16em～\kern-0.16em}}, repeat=yes, continue=yes, offset=-0.25]
+% 1对2，适合小字号，如10.5pt正文对应0.683em
+\definefont[tidebars][name:stsong*default at 0.683\jiazhsize]
+\definebar[shumhs][text=\lower\exheight\hbox{\tidebars\rotate[rotation=-9]{\kern-0.16em～\kern-0.16em}}, repeat=yes, continue=yes, offset=-0.25]
 
 %%%%%%%%%%%%% 回调模块 %%%%%%%%%%%%%
 \startluacode
@@ -98,7 +103,7 @@ vertical_typeset.opt()--moduledata.vertical_typese.opt()
 
 %%%%% 显式视觉调试信息 %%%%
 % \showboxes
-% \showframe
+\showframe
 % \showmakeup
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -192,7 +197,7 @@ vertical_typeset.opt()--moduledata.vertical_typese.opt()
 \jiazh{此章舊本誤在『止於信』下。}
 }
 
-此謂知本，
+此謂知本
 \jiazh{\zhuanmh{程子}曰：『衍文也。』}
 此謂知之至也。
 \jiazh{此句之上别有闕文，此特其結語耳。}
