@@ -83,8 +83,9 @@ local function boxes_to_rules(head)
 end
 
 -- 试排主段落 hsize：宽度；to_stretch：尾部拉伸（否则压缩）
-local function par_break(par_head, hsize, to_stretch)
+local function par_break(par_head, para, to_stretch)
 
+    local hsize = para.hsize
     local new_head = node_copylist(par_head)
 
     local is_vmode_par = (new_head.id == par_id)
@@ -106,7 +107,7 @@ local function par_break(par_head, hsize, to_stretch)
     penalty.penalty = 10000
     new_head, tail = node_insertafter(new_head, tail, penalty)
     
-    -- 添加hskip
+    -- 添加hskip(表示parfillskip)
     local hskip = node_new("glue")
     if to_stretch then
         hskip.width = 0
@@ -118,11 +119,13 @@ local function par_break(par_head, hsize, to_stretch)
     new_head, tail = node_insertafter(new_head, tail, hskip)
 
     -- 添加段末胶parfillskip（ TODO 似乎不起作用）
+    --[[
     local parfillskip = node_new("glue", "parfillskip") --一般是0pt plus 1fil
     parfillskip.stretch = 2^16 -- 可拉伸量2^16(65536)意义不明
     parfillskip.stretchorder = 2^16 --拉伸倍数2(fil)，意义不明
     new_head, tail = node_insertafter(new_head, tail, parfillskip)
-  
+    --]]
+
     -- 保障prev指针正确
     node_slide(new_head)
 
@@ -130,14 +133,6 @@ local function par_break(par_head, hsize, to_stretch)
     new_head = node_kerning(new_head) -- 加字间（出格）
     new_head = node_ligaturing(new_head) -- 西文合字
     
-    -- 用hsize控制分行宽度：{hsize =  tex_sp("25em")}；
-    -- 语言设置作用不详：{lang = tex.language}
-    -- , lefskip = leftskip_spec 不起作用
-    -- local leftskip_spec = node_new("gluespec")
-    -- leftskip_spec.width = tex_sp("5em")
-    -- leftskip_spec.stretch = tex_sp("5em")
-    -- leftskip_spec.stretchorder = 2
-    local para = {hsize=hsize}
     local info
     new_head, info = tex_linebreak(new_head, para)
 
@@ -166,32 +161,39 @@ local function make_jiazhu_box(hsize, boxes)
     local to_break_after = false -- 本条在行末，需要断行
 
     -- 夹注重排算法
-    local width_tolerance = tex_sp("0.4em") -- 宽容宽度（挤进一行）
-    local max_hsize = hsize + width_tolerance
-    local min_hsize = hsize - width_tolerance
-    local step = width_tolerance / 4 --步进控制 TODO 优化
+    local step = tex_sp("0.25em") --步进控制 TODO 优化
     local vbox_width = box_width / 2
     local box_head, info
     -- 可一次（两行）安排完的短盒子
-    if vbox_width <= max_hsize then
+    if vbox_width <= hsize then
         local line_num = 3
         vbox_width = vbox_width - 2 * step --步进控制 TODO 优化
         while(line_num >= 3) do
-            box_head, info = par_break(b_list, vbox_width, true)
+            local para = {hsize=vbox_width}
+            -- 语言设置作用不详：lang = tex.language
+            -- lefskip = leftskip_spec 不起作用
+                -- local leftskip_spec = node_new("gluespec")
+                -- leftskip_spec.width = tex_sp("5em")
+                -- leftskip_spec.stretch = tex_sp("5em")
+                -- leftskip_spec.stretchorder = 2
+            box_head, info = par_break(b_list, para, true)
             line_num = info.prevgraf
             vbox_width = vbox_width + step -- TODO 改进步进量或段末胶
         end
+        
         -- 其后强制断行
-        local actual_vbox_width = vbox_width - step
-        if actual_vbox_width >= min_hsize and actual_vbox_width <= max_hsize then
-            to_break_after = true
-        end
+        -- local actual_vbox_width = vbox_width - step
+        -- local tolerance = step
+        -- if actual_vbox_width >= min_hsize and actual_vbox_width <= hsize then
+        --     to_break_after = true
+        -- end
+
         -- 清除rule标记
         to_remove = true
         node_flushlist(boxes[1].head)
         table.remove(boxes, 1)
     else -- 需要循环安排的长盒子
-        box_head, info = par_break(b_list, hsize, false)
+        box_head, info = par_break(b_list, {hsize=hsize}, false)
 
         -- 只取前两行所包含的节点
         local line_num = 0
@@ -303,7 +305,8 @@ local function find_fist_rule(par_head_with_rule, boxes)
             local hsize = tex_dimen_textwidth -- tex.dimen.hsize
 
             -- TODO par_break改变了head_with_rules
-            local vpar_head, _= par_break(par_head_with_rule, hsize, false)
+            
+            local vpar_head, _= par_break(par_head_with_rule, {hsize=hsize}, false)
 
             -- context(node_copylist(vpar_head))
             par_head_with_rule, boxes = insert_jiazhu(par_head_with_rule, vpar_head, boxes)

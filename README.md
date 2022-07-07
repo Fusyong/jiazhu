@@ -35,51 +35,52 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
 * [x] 夹注转换成标记结点和数据表
 * [x] 夹注整理，分段插入
 * [x] 与直排模块整合
-    * [x] 长夹注（78字以上）内存溢出，死循环
-        * [x] 无用结点清洗
-        * [X] 计数考虑直排盒子（**问题在此**）
+  * [x] 长夹注（78字以上）内存溢出，死循环
+    * [x] 无用结点清洗
+    * [x] 计数考虑直排盒子（**问题在此**）
+* [ ] 检查行overfull后vpack
+* [ ] 优化夹注断行算法，使用parshape一次完成分组，并监控质量（目前每次重新断行后取前两行，往往质量较低，宽度也不可控，常导致溢出）
+  * [ ] 短行超出边界
+  * [ ] 标点挤压错误（问题可能在标点压缩模块，挤压标点未处理胶性）
 * [ ] 标点压缩问题（部分问题可能在标点压缩模块）
-    * [ ] 夹注行末标点没有压缩（？？）
-    * [ ] 短行中有禁则时导致过度压缩（**改成半字后胶性没有更改？？**）
+  * [ ] 夹注行末标点没有压缩（？？）
+  * [ ] 短行中有禁则时导致过度压缩（**改成半字后胶性没有更改？？**）
 * [ ] 调整夹注排式
-    * [x] 在标题中无效
-    * [ ] 与narrower重叠使用缩进（当在linebreak设置）
-        * [X] 暂时用\leftskip代替
-    * [ ] 短行超出边界
-    * [ ] 夹注前空过大
+  * [x] 在标题中无效
+  * [ ] 与narrower重叠使用缩进（当在linebreak设置）
+    * [X] 暂时用\leftskip代替
+  * [X] 夹注前空过大
 * [ ] 模块化，增加用户接口
-    * [ ] 双行兼容单行
+  * [ ] 双行兼容单行
 * [ ] parfillskip
-    * 不起作用（目前用自定glue代替，但可能影响标点压缩模块，导致同样内容的两行不整齐）
-* [ ] 优化夹注断行（目前每次重新断行后取前两行，往往质量较低，或可使用parshape一次完成分组）
+  * 不起作用（目前用自定glue代替，但可能影响标点压缩模块，导致同样内容的两行不整齐）
 
 # 关于断行、分段的备用资料
 
 ## cjk排版原型
 
-http://wiki.luatex.org/index.php/Japanese_and_more_generally_CJK_typesetting
+<http://wiki.luatex.org/index.php/Japanese_and_more_generally_CJK_typesetting>
 
-## cjk断行相关的系统文件：
+## cjk断行相关的系统文件
 
 * 语言脚本：D:\venvs\context-win64\tex\texmf-context\tex\context\base\mkiv\scrp-cjk.lua
 * 行to段：D:\venvs\context-win64\tex\texmf-context\tex\context\base\mkiv\node-ltp.lua
 
-
 ## tex.linebreak的工作基于当前状态
 
-https://www.mail-archive.com/dev-luatex@ntg.nl/msg01805.html
+<https://www.mail-archive.com/dev-luatex@ntg.nl/msg01805.html>
 
 It is basing itself on the current TeX state at that point in time (at least, that is what it should do). You can look up tex_run_linebreak() in ltexlib.c, it should be easy to follow.
 
 ## Hans论干预断行的思路
 
-https://www.mail-archive.com/luatex@tug.org/msg04329.html
+<https://www.mail-archive.com/luatex@tug.org/msg04329.html>
 
 > By the way, Hans, I heard you already reimplemented the TeX linebreak algorithm in pure Lua, can your code be found somewhere?
 
 on my machine ... i'm waiting for the new hz in the backend before putting it in the context distribution because i don't want to end up with several versions (and i then need to prune some test code) ... so some patience is needed ...
 
-btw there was an article on it some time ago, also in: http://www.pragma-ade.com/general/manuals/hybrid.pdf, p 101
+btw there was an article on it some time ago, also in: <http://www.pragma-ade.com/general/manuals/hybrid.pdf>, p 101
 
 **one thing you could play with is storing the paragraph before it gets broken, then let tex do the job, analyze afterwards, and when not ok, add some penalties and let tex do the job again**
 
@@ -89,7 +90,7 @@ Hans
 
 ## 另一种思路：在两个回调中处理
 
-https://www.mail-archive.com/luatex@tug.org/msg05587.html
+<https://www.mail-archive.com/luatex@tug.org/msg05587.html>
 
 I did set up pre_linebreak_filter to find out the cases where line breaking happens on the main vertical list (in contrast to being done in a box, say). Then inside pre_linebreak_filter I run
 
@@ -101,16 +102,14 @@ Then in post_linebreak_filter I replace the generated paragraph node list with s
 
 ## 关于parbuilder (and related hpacking)
 
-http://www.pragma-ade.com/general/manuals/hybrid.pdf, p95
+<http://www.pragma-ade.com/general/manuals/hybrid.pdf>, p95
 
 in September 2008, when we were exploring solutions for Arabic par building, Taco converted the parbuilder into Lua code and **stripped away all code related to hyphenation, protrusion, expansion, last line fitting, and some more.**
 
 ## 末行长度与段落填充控制
 
-https://tex.stackexchange.com/questions/63762/minimum-length-of-last-line-of-a-paragraph
+<https://tex.stackexchange.com/questions/63762/minimum-length-of-last-line-of-a-paragraph>
 
 ## 结点操控参考实例
 
-* https://github.com/gucci-on-fleek/lua-widow-control
-
-
+* <https://github.com/gucci-on-fleek/lua-widow-control>
