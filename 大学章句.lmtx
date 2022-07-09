@@ -90,7 +90,7 @@ vertical_typeset.opt()--moduledata.vertical_typese.opt()
 
 ---[[
 -- 使用本地中文标点压缩模块
-local zhspuncs = require("../zhfonts/t-zhspuncs2.lua")
+local zhspuncs = require("../zhfonts/t-zhspuncs.lua")
 zhspuncs.opt() --moduledata.zhspuncs.opt()
 --]]
 
