@@ -96,7 +96,7 @@ zhspuncs.opt() --moduledata.zhspuncs.opt()
 
 
 ---[[
-local jiazhu = require("jiazhu2.lua")
+local jiazhu = require("jiazhu.lua")
 jiazhu.register()
 --]]
 
@@ -105,7 +105,7 @@ jiazhu.register()
 
 %%%%% 显式视觉调试信息 %%%%
 % \showboxes
-\showframe
+% \showframe
 % \showmakeup
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

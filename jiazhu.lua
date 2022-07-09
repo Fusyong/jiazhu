@@ -10,6 +10,11 @@ local par_id = nodes.nodecodes.par
 local penalty_id = nodes.nodecodes.penalty
 local rule_id = nodes.nodecodes.rule
 local vlist_id = nodes.nodecodes.vlist
+local righthangskip_id = nodes.subtypes.glue.righthangskip -- node.subtype("righthangskip")
+local lefthangskip_id = nodes.subtypes.glue.lefthangskip
+local leftskip_id = nodes.subtypes.glue.leftskip
+local rightskip_id = nodes.subtypes.glue.rightskip
+local parfillleftskip_id = nodes.subtypes.glue.parfillleftskip
 
 local node_copylist = node.copylist
 local node_count = node.count
@@ -17,7 +22,6 @@ local node_dimensions = node.dimensions
 local node_flushlist = node.flushlist
 local node_free = node.free
 local node_hasattribute = node.hasattribute
-local node_hpack = node.hpack
 local node_insertafter = node.insertafter
 local node_insertbefore = node.insertbefore
 local node_kerning = node.kerning
@@ -29,6 +33,7 @@ local node_slide = node.slide
 local node_traverse = node.traverse
 local node_traverseid = node.traverseid
 local node_vpack = node.vpack
+local node_hpack = node.hpack
 
 local tex_dimen_textwidth = tex.dimen.textwidth
 local tex_linebreak = tex.linebreak
@@ -65,7 +70,9 @@ local function boxes_to_rules(head)
     while n do
         if node_hasattribute(n, 2, 222) and n.id == hlist_id then
             local w = node_new(rule_id)
-            w.width = tex_sp("1em")
+            -- 预设最短夹注，太小会导致循环流溢错误（尤其是受禁则影响时）！！！！ TODO 监控错误
+            -- 1:3: [package: overfull \hbox (5012.06207pt too wide) in paragraph at lines 225--230]
+            w.width = tex_sp("2em")
             node_setattribute(w, 3, 333)
             head = node_insertbefore(head, n, w)
             local removed
@@ -83,8 +90,14 @@ local function boxes_to_rules(head)
 end
 
 -- 试排主段落 hsize：宽度；to_stretch：尾部拉伸（否则压缩）
-local function par_break(par_head, hsize, to_stretch)
+local function par_break(par_head, para, to_stretch)
 
+    local last_group_width
+    if para.parshape then
+        last_group_width = para.parshape[#para.parshape][2]
+    else
+        last_group_width = para.hsize
+    end
     local new_head = node_copylist(par_head)
 
     local is_vmode_par = (new_head.id == par_id)
@@ -106,23 +119,25 @@ local function par_break(par_head, hsize, to_stretch)
     penalty.penalty = 10000
     new_head, tail = node_insertafter(new_head, tail, penalty)
     
-    -- 添加hskip
+    -- 添加hskip(表示parfillskip)
     local hskip = node_new("glue")
     if to_stretch then
         hskip.width = 0
-        hskip.stretch = hsize
+        hskip.stretch = last_group_width
     else
-        hskip.width = hsize -- 能模仿系统断行
-        hskip.shrink = hsize -- 能模仿系统断行
+        hskip.width = last_group_width -- 能模仿系统断行
+        hskip.shrink = last_group_width -- 能模仿系统断行
     end
     new_head, tail = node_insertafter(new_head, tail, hskip)
 
     -- 添加段末胶parfillskip（ TODO 似乎不起作用）
+    --[[
     local parfillskip = node_new("glue", "parfillskip") --一般是0pt plus 1fil
     parfillskip.stretch = 2^16 -- 可拉伸量2^16(65536)意义不明
     parfillskip.stretchorder = 2^16 --拉伸倍数2(fil)，意义不明
     new_head, tail = node_insertafter(new_head, tail, parfillskip)
-  
+    --]]
+
     -- 保障prev指针正确
     node_slide(new_head)
 
@@ -130,14 +145,6 @@ local function par_break(par_head, hsize, to_stretch)
     new_head = node_kerning(new_head) -- 加字间（出格）
     new_head = node_ligaturing(new_head) -- 西文合字
     
-    -- 用hsize控制分行宽度：{hsize =  tex_sp("25em")}；
-    -- 语言设置作用不详：{lang = tex.language}
-    -- , lefskip = leftskip_spec 不起作用
-    -- local leftskip_spec = node_new("gluespec")
-    -- leftskip_spec.width = tex_sp("5em")
-    -- leftskip_spec.stretch = tex_sp("5em")
-    -- leftskip_spec.stretchorder = 2
-    local para = {hsize=hsize}
     local info
     new_head, info = tex_linebreak(new_head, para)
 
@@ -157,100 +164,176 @@ local function jiazhu_hsize(hlist, current_n)
 end
 
 -- 生成双行夹注
-local function make_jiazhu_box(hsize, boxes)
+-- TODO 使用parshap
+
+local function make_jiazhu_box(tail_hsize, boxes)
+
     local b = boxes[1]
     local box_width = jiazhu_hsize(b, b.head)  -- 实际测量宽度，不适用width属性
-    -- show_detail(b.head,"here")
     local b_list = b.list
-    local to_remove -- 本条已经完成，需要移除
-    local to_break_after = false -- 本条在行末，需要断行
 
     -- 夹注重排算法
-    local width_tolerance = tex_sp("0.4em") -- 宽容宽度（挤进一行）
-    local max_hsize = hsize + width_tolerance
-    local min_hsize = hsize - width_tolerance
-    local step = width_tolerance / 4 --步进控制 TODO 优化
-    local vbox_width = box_width / 2
+    local length_sum = box_width / 2  -- 估算的总长度
+    local tex_hsize = tex.hsize -- TODO 这里是值引用吗？？？
+    
+    -- 生成段落形状表
+    local step = tex_sp("0.25em") --步进控制 TODO 优化
+    local start_w = tex_sp("1em") -- 新行起始长度，控制过短的情况，否则可能导致错误或堆叠 TODO 无效！！！
+    local parshape
+    local left_except_first = length_sum - tail_hsize -- 除首组外的长度
+    if left_except_first >0 then --预计安排组：1+lines_group+1
+        local lines_group, f= math.modf(left_except_first / tex_hsize) -- 整行组数，尾组比率
+        -- 头两行
+        parshape = {
+            {0,tail_hsize},{0,tail_hsize},
+        }
+        -- 肚子行
+        for i=1, lines_group, 1 do
+            table.insert( parshape, {0, tex_hsize})
+            table.insert( parshape, {0, tex_hsize})
+        end
+        -- 尾行（只用一个数据控制）
+        local last_hsize = f * tex_hsize
+        if last_hsize < start_w then
+            last_hsize = start_w
+        end
+        table.insert( parshape, {0, last_hsize})
+        -- table.insert( parshape, {0, last_hsize})
+    else -- 预计一组安排
+        local first_hsize = length_sum
+        -- 只用一个数据控制
+        parshape = {
+            {0,first_hsize}
+        }
+    end
+    
     local box_head, info
-    -- 可一次（两行）安排完的短盒子
-    if vbox_width <= max_hsize then
-        local line_num = 3
-        vbox_width = vbox_width - 2 * step --步进控制 TODO 优化
-        while(line_num >= 3) do
-            box_head, info = par_break(b_list, vbox_width, true)
-            line_num = info.prevgraf
-            vbox_width = vbox_width + step -- TODO 改进步进量或段末胶
-        end
-        -- 其后强制断行
-        local actual_vbox_width = vbox_width - step
-        if actual_vbox_width >= min_hsize and actual_vbox_width <= max_hsize then
-            to_break_after = true
-        end
-        -- 清除rule标记
-        to_remove = true
-        node_flushlist(boxes[1].head)
-        table.remove(boxes, 1)
-    else -- 需要循环安排的长盒子
-        box_head, info = par_break(b_list, hsize, false)
-
-        -- 只取前两行所包含的节点
-        local line_num = 0
-        local glyph_num = 0
-        for i in node_traverseid(hlist_id, box_head) do
-            line_num = line_num + 1
-            -- 计算字模、列表数量 TODO 计数优化，还应该增加类型，如rule等
-            glyph_num = glyph_num + node_count(glyph_id, i.head)
-            glyph_num = glyph_num + node_count(hlist_id, i.head)
-            if line_num == 2 then
-                box_head = node_copylist(box_head, i.next)
-                break --计数法
-            end
-        end
-
-        -- 截取未用的盒子列表  TODO 相应优化
-        for i in node_traverse(b_list) do
-            if i.id == glyph_id or i.id == hlist_id then
-                glyph_num = glyph_num - 1
-                if glyph_num == -1 then
-                    local hlist = node_hpack(node_copylist(i))
-                    node_flushlist(boxes[1].head)
-                    boxes[1] = hlist
+    local line_num
+    while true do
+        box_head, info = par_break(b_list, {parshape=parshape}, true)
+        -- print("====box_width, tex_hsize",box_width, tex_hsize )
+        -- print(parshape[1][2])
+        -- print("=============",info.prevgraf,#parshape )
+        -- for l in node.traverseid(hlist_id,box_head) do
+        --     print(l.width)
+        --     print(nodes.toutf(l.head))
+        -- end
+        line_num = info.prevgraf
+        local tail_and_on_num = line_num - (#parshape - 1) --预设最后一组之下的行数
+        if tail_and_on_num == 2 then
+            break -- 成功；目前假设不存在末行不满这种可能
+        elseif tail_and_on_num > 2 then  -- 溢出，则拉伸最后一行
+            local new_hsize = parshape[#parshape][2] + step
+            if #parshape > 2 then -- 两组以上
+                if parshape[#parshape][2] >= tex_hsize then --本已到头，则增加行数据
+                    parshape[#parshape][2] = tex_hsize
+                    table.insert(parshape, {0, tex_hsize})
+                    table.insert(parshape, {0, start_w})
+                elseif new_hsize >= tex_hsize then --本次到头
+                    parshape[#parshape][2] = tex_hsize
+                else -- 本次仍未到头
+                    parshape[#parshape][2] = new_hsize
+                end
+            else --仅仅一组本行安排
+                if parshape[#parshape][2] >= tail_hsize then --本已到头，则增加行数据
+                    parshape[#parshape][2] = tail_hsize
+                    table.insert(parshape, {0, tail_hsize})
+                    table.insert(parshape, {0, start_w})
+                elseif new_hsize >= tail_hsize then
+                    parshape[#parshape][2] = tail_hsize
+                else
+                    parshape[#parshape][2] = new_hsize
                 end
             end
+        else -- 少于预估（以及第一个条中末行不满），目前假设不存在这种可能
+            -- 因禁则的原因，可能会导致始终无法挤成两行 TODO
+            parshape[#parshape][2] = parshape[#parshape][2] - step
         end
-
-        to_break_after = true
-        to_remove = false
     end
 
     -- 打包，修改包的高度和行距
-    box_head = node_vpack(box_head)
-    local skip = tex_sp("0.08em") -- 夹注行间距
-    local sub_glue_h = 0 -- 计算删除的胶高度
-    local n = box_head.head
-    local count = 0
-    while n do
-        if n.id == glue_id then
-            count = count + 1
-            if count == 1 then
-                sub_glue_h = sub_glue_h + n.width
-                box_head.head, n = node_remove(box_head.head, n, true)
-            else
+    local function pack_group(head)
+        local most_w = 0 -- 最大行宽
+        for l in node_traverseid(hlist_id, head) do
+            local n = l.head
+            while n do
+                if n.id == glue_id then
+                    -- if n.subtype == parfillleftskip_id  then
+                    --     l.head,n = node_remove(l.head,n.prev,true)
+                    --     l.head,n = node_remove(l.head,n,true)
+                    -- else
+                    if n.subtype == righthangskip_id-- 删除每行的righthangskip
+                        -- or n.subtype == lefthangskip_id
+                        -- or n.subtype == leftskip_id
+                        -- or n.subtype == rightskip_id
+                        then
+                        l.head,n = node_remove(l.head,n,true)
+                    else
+                        n = n.next
+                    end
+                else
+                    n = n.next
+                end
+            end
+            l.width = nil -- ！！！ 如果不处理，hlist的宽度会保留（作为外壳） TODO
+            l = node_hpack(l.head)
+            if l.width > most_w then
+                most_w = l.width
+            end
+        end
+        
+        head = node_vpack(head)
+        head.width = most_w -- 无法活动自然宽度，暂时改宽度 TODO
+
+        local skip = tex_sp("0.08em") -- 夹注行间距
+        local sub_glue_h = 0 -- 计算删除的胶高度
+        local n = head.head
+        while n do
+            if n.id == glue_id then
                 sub_glue_h = sub_glue_h + (n.width - skip)
                 n.width = skip
-                n = n.next
             end
-        else
             n = n.next
         end
+        
+        local box_head_height = head.height - sub_glue_h
+        local baseline_to_center =  tex_sp("0.4em") -- TODO 应根据字体数据计算
+        head.height = baseline_to_center + box_head_height/ 2
+        head.depth = box_head_height - head.height
+        return head
     end
 
-    local box_head_height = box_head.height - sub_glue_h
-    local baseline_to_center =  tex_sp("0.4em") -- TODO 应根据字体数据计算
-    box_head.height = baseline_to_center + box_head_height/ 2
-    box_head.depth = box_head_height - box_head.height
+    -- 只取前两行所包含的节点
+    local jiazhu_groups = {}
+    local l_num = 0
+    local first
+    local second
+    for i in node_traverseid(hlist_id, box_head) do
+        l_num = l_num + 1
+        local _, f = math.modf(l_num/2)
+        if f == 0 then
+            second = i
+            local group = node_copylist(first, second.next)
+            group = pack_group(group)
+            table.insert(jiazhu_groups, group)
+            first = nil
+            second = nil
+        else
+            first = i
+        end
+    end
+    -- 收集落单行
+    if first then
+        local group = node_copylist(first, first.next)
+        group = pack_group(group)
+        table.insert(jiazhu_groups, group)
+    end
 
-    return box_head, boxes, to_remove, to_break_after
+    node_flushlist(boxes[1].head)
+    node_flushlist(box_head)
+    table.remove(boxes, 1)
+
+    return jiazhu_groups, boxes
 end
 
 -- 根据第一个rule的位置分拆、组合、插入夹注盒子、罚点等
@@ -261,30 +344,33 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
         for r, _ in node_traverseid(rule_id,h.head) do
             if node_hasattribute(r,3,333) then
                 local hsize = jiazhu_hsize(h, r) -- 夹注标记rule到行尾的长度
-                local to_remove, jiazhu_box, to_break_after
-                jiazhu_box, jiazhu_boxes, to_remove, to_break_after = make_jiazhu_box(hsize, jiazhu_boxes)
+                local jiazhu_groups
+                jiazhu_groups, jiazhu_boxes = make_jiazhu_box(hsize, jiazhu_boxes)
                 for rule, _ in node_traverseid(rule_id, head_with_rules) do
                     if node_hasattribute(rule,3,333) then
-                        -- 插入夹注
-                        head_with_rules, jiazhu_box = node_insertbefore(head_with_rules, rule, jiazhu_box)
-                        -- 插入罚点（必须断行）
-                        local penalty = node_new("penalty")
-                        if to_break_after then
-                            penalty.penalty = -10000
-                        else
-                            penalty.penalty = 0
+                        for i=1, #jiazhu_groups, 1 do
+                            local group = jiazhu_groups[i]
+                            -- 插入夹注
+                            head_with_rules, group = node_insertbefore(head_with_rules, rule, group)
+                            
+                            -- 插入罚点
+                            local penalty = node_new("penalty")
+                            if i < #jiazhu_groups then -- 非末行后，强制断行
+                                penalty.penalty = -10000
+                            else
+                                penalty.penalty = 0 --末行后不强制
+                            end
+                            head_with_rules, penalty = node_insertafter(head_with_rules, group, penalty)
+                            if i < #jiazhu_groups then -- 非末行后，强制断行
+                                -- 或，加胶
+                                local glue = node_new("glue")
+                                glue.width = 0
+                                glue.stretch = tex_sp("0.5em")
+                                head_with_rules, glue = node_insertafter(head_with_rules, group, glue)
+                            end
                         end
-                        head_with_rules, penalty = node_insertafter(head_with_rules, jiazhu_box, penalty)
-                        -- 移除标记rule
-                        if to_remove then
-                            head_with_rules, rule = node_remove(head_with_rules,rule,true)
-                        else
-                            -- 或，加胶
-                            local glue = node_new("glue")
-                            glue.width = 0
-                            glue.stretch = tex_sp("0.5em")
-                            head_with_rules, glue = node_insertafter(head_with_rules, penalty, glue)
-                        end
+                        
+                        head_with_rules, rule = node_remove(head_with_rules,rule,true)-- 移除标记rule
                         node_flushlist(vpar_head)
                         return head_with_rules, jiazhu_boxes
                     end
@@ -303,7 +389,8 @@ local function find_fist_rule(par_head_with_rule, boxes)
             local hsize = tex_dimen_textwidth -- tex.dimen.hsize
 
             -- TODO par_break改变了head_with_rules
-            local vpar_head, _= par_break(par_head_with_rule, hsize, false)
+            
+            local vpar_head, _= par_break(par_head_with_rule, {hsize=hsize}, false)
 
             -- context(node_copylist(vpar_head))
             par_head_with_rule, boxes = insert_jiazhu(par_head_with_rule, vpar_head, boxes)
