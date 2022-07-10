@@ -39,17 +39,14 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [x] 无用结点清洗
     * [x] 计数考虑直排盒子（**问题在此**）
 * [x] 优化夹注断行算法，使用parshape一次完成分组，并监控质量（目前每次重新断行后取前两行，往往质量较低，宽度也不可控，常导致溢出）
-* [ ] 检查行overfull
-  * [ ] 检查、调整linebreak、hpack、vpack前后的info
-  * [ ] 逐行手动测量实际长度
-* [ ] 标点压缩问题（部分问题可能在标点压缩模块）
-  * [ ] 夹注行末标点没有压缩（？？）
-  * [ ] 短行中有禁则时导致过度压缩（**改成半字后胶性没有更改？？**）
 * [ ] 调整夹注排式
   * [x] 在标题中无效
   * [ ] 与narrower重叠使用缩进（当在linebreak设置）
     * [X] 暂时用\leftskip代替
   * [X] 夹注前空过大
+* [ ] 检查行overfull
+  * [ ] 检查、调整linebreak、hpack、vpack前后的info
+  * [ ] 逐行手动测量实际长度（无效，测量值跟n.width一致）
 * [ ] 模块化，增加用户接口
   * [ ] 双行兼容单行
 * [ ] parfillskip

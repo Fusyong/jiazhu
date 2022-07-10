@@ -277,13 +277,22 @@ local function make_jiazhu_box(tail_hsize, boxes)
             end
             l.width = nil -- ！！！ 如果不处理，hlist的宽度会保留（作为外壳） TODO
             l = node_hpack(l.head)
+            -- 实际测量与l.width一致，无法探测overfull
+            -- local ll = node.dimensions(
+            --     l.glue_set,
+            --     l.glue_sign,
+            --     l.glue_order,
+            --     l.head
+            -- )
+            -- print(l.width, ll)
             if l.width > most_w then
                 most_w = l.width
             end
         end
         
         head = node_vpack(head)
-        head.width = most_w -- 无法活动自然宽度，暂时改宽度 TODO
+        -- 无法获得自然宽度，暂时改宽度 TODO
+        head.width = most_w
 
         local skip = tex_sp("0.08em") -- 夹注行间距
         local sub_glue_h = 0 -- 计算删除的胶高度
