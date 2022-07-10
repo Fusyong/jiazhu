@@ -146,7 +146,7 @@ local function par_break(par_head, para, to_stretch)
     new_head = node_ligaturing(new_head) -- 西文合字
     
     local info
-    new_head, info = tex_linebreak(new_head, para)
+    new_head, info = tex_linebreak(new_head, para) -- 引擎会自动多次测试，直到demerits符合要求
 
     return new_head, info
 end
@@ -210,14 +210,9 @@ local function make_jiazhu_box(tail_hsize, boxes)
     local box_head, info
     local line_num
     while true do
+        -- emergencystretch=tex_sp("0.1em") -- 导致过稀疏
+        -- looseness=1 -- 可能导致缺点过大而不断循环测试
         box_head, info = par_break(b_list, {parshape=parshape}, true)
-        -- print("====box_width, tex_hsize",box_width, tex_hsize )
-        -- print(parshape[1][2])
-        -- print("=============",info.prevgraf,#parshape )
-        -- for l in node.traverseid(hlist_id,box_head) do
-        --     print(l.width)
-        --     print(nodes.toutf(l.head))
-        -- end
         line_num = info.prevgraf
         local tail_and_on_num = line_num - (#parshape - 1) --预设最后一组之下的行数
         if tail_and_on_num == 2 then
@@ -255,17 +250,21 @@ local function make_jiazhu_box(tail_hsize, boxes)
     local function pack_group(head)
         local most_w = 0 -- 最大行宽
         for l in node_traverseid(hlist_id, head) do
+            -- show_detail(l.head, "夹注行详情，前")
             local n = l.head
             while n do
                 if n.id == glue_id then
+                    -- 没有影响
                     -- if n.subtype == parfillleftskip_id  then
                     --     l.head,n = node_remove(l.head,n.prev,true)
                     --     l.head,n = node_remove(l.head,n,true)
                     -- else
                     if n.subtype == righthangskip_id-- 删除每行的righthangskip
+                        -- 没有影响
                         -- or n.subtype == lefthangskip_id
                         -- or n.subtype == leftskip_id
                         -- or n.subtype == rightskip_id
+                        -- or n.subtype == righthangskip_id
                         then
                         l.head,n = node_remove(l.head,n,true)
                     else
@@ -275,9 +274,10 @@ local function make_jiazhu_box(tail_hsize, boxes)
                     n = n.next
                 end
             end
+
             l.width = nil -- ！！！ 如果不处理，hlist的宽度会保留（作为外壳） TODO
             l = node_hpack(l.head)
-            -- 实际测量与l.width一致，无法探测overfull
+            -- TODO 实际测量与l.width一致，无法探测overfull
             -- local ll = node.dimensions(
             --     l.glue_set,
             --     l.glue_sign,
@@ -291,7 +291,6 @@ local function make_jiazhu_box(tail_hsize, boxes)
         end
         
         head = node_vpack(head)
-        -- 无法获得自然宽度，暂时改宽度 TODO
         head.width = most_w
 
         local skip = tex_sp("0.08em") -- 夹注行间距
@@ -415,13 +414,10 @@ end
 
 function Moduledata.jiazhu.main(head)
     local out_head = head
-    -- 仅处理段落
-    -- if head.id == par_id then
-        local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
-        if par_head_with_rule then
-            out_head = find_fist_rule(par_head_with_rule, jiazhu_boxes)
-        end
-    -- end
+    local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
+    if par_head_with_rule then
+        out_head = find_fist_rule(par_head_with_rule, jiazhu_boxes)
+    end
     return out_head, true
 end
 
