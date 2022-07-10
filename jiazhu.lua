@@ -362,19 +362,14 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
                             head_with_rules, group = node_insertbefore(head_with_rules, rule, group)
                             
                             -- 插入罚点
-                            local penalty = node_new("penalty")
                             if i < #jiazhu_groups then -- 非末行后，强制断行
+                                local penalty = node_new("penalty")
                                 penalty.penalty = -10000
-                            else
-                                penalty.penalty = 0 --末行后不强制
-                            end
-                            head_with_rules, penalty = node_insertafter(head_with_rules, group, penalty)
-                            if i < #jiazhu_groups then -- 非末行后，强制断行
-                                -- 或，加胶
+                                head_with_rules, penalty = node_insertafter(head_with_rules, group, penalty)
                                 local glue = node_new("glue")
                                 glue.width = 0
                                 glue.stretch = tex_sp("0.5em")
-                                head_with_rules, glue = node_insertafter(head_with_rules, group, glue)
+                                head_with_rules, glue = node_insertafter(head_with_rules, penalty, glue)
                             end
                         end
                         

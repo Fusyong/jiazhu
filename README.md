@@ -38,15 +38,17 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
   * [x] 长夹注（78字以上）内存溢出，死循环
     * [x] 无用结点清洗
     * [x] 计数考虑直排盒子（**问题在此**）
+* [x] 在标题中无效
 * [x] 优化夹注断行算法，使用parshape一次完成分组，并监控质量（目前每次重新断行后取前两行，往往质量较低，宽度也不可控，常导致溢出）
+  * [ ] 第一组（前两行）还可以优化
 * [ ] 调整夹注排式
-  * [x] 在标题中无效
   * [ ] 与narrower重叠使用缩进（当在linebreak设置）
     * [X] 暂时用\leftskip代替
   * [X] 夹注前空过大
-* [ ] 检查行overfull
+* [ ] 检查夹注行overfull
   * [ ] 检查、调整linebreak、hpack、vpack前后的info
   * [ ] 逐行手动测量实际长度（无效，测量值跟n.width一致）
+  * [ ] 或检查正文行overfull，压缩标点
 * [ ] 模块化，增加用户接口
   * [ ] 双行兼容单行
 * [ ] parfillskip
