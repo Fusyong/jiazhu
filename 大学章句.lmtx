@@ -96,7 +96,9 @@ zhspuncs.opt() --moduledata.zhspuncs.opt()
 
 
 ---[[
-local jiazhu = require("jiazhu.lua")
+local jiazhu
+--jiazhu = require("jiazhu_o.lua")
+jiazhu = require("jiazhu.lua")
 jiazhu.register()
 --]]
 

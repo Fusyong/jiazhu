@@ -15,7 +15,10 @@ local lefthangskip_id = nodes.subtypes.glue.lefthangskip
 local leftskip_id = nodes.subtypes.glue.leftskip
 local rightskip_id = nodes.subtypes.glue.rightskip
 local parfillleftskip_id = nodes.subtypes.glue.parfillleftskip
+local correctionskip_id = nodes.subtypes.glue.correctionskip
+local kern_id = nodes.nodecodes.kern
 
+local node_tail = node.tail
 local node_copylist = node.copylist
 local node_count = node.count
 local node_dimensions = node.dimensions
@@ -92,12 +95,14 @@ end
 -- 试排主段落 hsize：宽度；to_stretch：尾部拉伸（否则压缩）
 local function par_break(par_head, para, to_stretch)
 
+    -- 是否有段落形状数据
     local last_group_width
     if para.parshape then
         last_group_width = para.parshape[#para.parshape][2]
     else
         last_group_width = para.hsize
     end
+
     local new_head = node_copylist(par_head)
 
     local is_vmode_par = (new_head.id == par_id)
@@ -145,8 +150,10 @@ local function par_break(par_head, para, to_stretch)
     new_head = node_kerning(new_head) -- 加字间（出格）
     new_head = node_ligaturing(new_head) -- 西文合字
     
+    print("==============")
     local info
     new_head, info = tex_linebreak(new_head, para) -- 引擎会自动多次测试，直到demerits符合要求
+    print(info.demerits)
 
     return new_head, info
 end
@@ -163,6 +170,22 @@ local function jiazhu_hsize(hlist, current_n)
     return d
 end
 
+-- 找到最后一个对视觉长度有影响的结点glyph_or_list_rule_kern
+local function last_visible_node(head)
+    local n = node_tail(head)
+    while n do
+        if n.id == glue_id
+        or n.id == hlist_id
+        or n.id == vlist_id
+        or n.id == rule_id
+        or n.id == kern_id
+        then
+            return n
+        end
+        n = n.prev
+    end
+end
+
 -- 生成双行夹注
 -- TODO 使用parshap
 
@@ -173,12 +196,13 @@ local function make_jiazhu_box(tail_hsize, boxes)
     local b_list = b.list
 
     -- 夹注重排算法
-    local length_sum = box_width / 2  -- 估算的总长度
+    -- local breaking_extend_factor = 1.01 -- 估算断行导致的长度扩展，超过1.05会造成循环。没有实际效果
+    local length_sum = box_width / 2 -- * breaking_extend_factor  -- 估算的总长度
     local tex_hsize = tex.hsize -- TODO 这里是值引用吗？？？
     
     -- 生成段落形状表
-    local step = tex_sp("0.25em") --步进控制 TODO 优化
-    local start_w = tex_sp("1em") -- 新行起始长度，控制过短的情况，否则可能导致错误或堆叠 TODO 无效！！！
+    local step = tex_sp("0.25em") --步进控制，对速度有影响 TODO 优化
+    local start_w = tex_sp("1.5em") -- 新行起始长度，控制过短的情况，否则可能导致错误或堆叠，对速度有影响 TODO 无效
     local parshape
     local left_except_first = length_sum - tail_hsize -- 除首组外的长度
     if left_except_first >0 then --预计安排组：1+lines_group+1
@@ -246,6 +270,7 @@ local function make_jiazhu_box(tail_hsize, boxes)
         end
     end
 
+
     -- 打包，修改包的高度和行距
     local function pack_group(head)
         local most_w = 0 -- 最大行宽
@@ -260,6 +285,8 @@ local function make_jiazhu_box(tail_hsize, boxes)
                     --     l.head,n = node_remove(l.head,n,true)
                     -- else
                     if n.subtype == righthangskip_id-- 删除每行的righthangskip
+                        -- 清楚禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
+                        or n.subtype == correctionskip_id
                         -- 没有影响
                         -- or n.subtype == lefthangskip_id
                         -- or n.subtype == leftskip_id
@@ -275,19 +302,18 @@ local function make_jiazhu_box(tail_hsize, boxes)
                 end
             end
 
-            l.width = nil -- ！！！ 如果不处理，hlist的宽度会保留（作为外壳） TODO
-            l = node_hpack(l.head)
-            -- TODO 实际测量与l.width一致，无法探测overfull
-            -- local ll = node.dimensions(
-            --     l.glue_set,
-            --     l.glue_sign,
-            --     l.glue_order,
-            --     l.head
-            -- )
-            -- print(l.width, ll)
-            if l.width > most_w then
-                most_w = l.width
-            end
+            local last_v_n = last_visible_node(l.head)
+            local actual_vbox_width = node.dimensions(
+                l.glue_set,
+                l.glue_sign,
+                l.glue_order,
+                l.head,
+                last_v_n.next
+            )
+            l.width = nil  --清楚行宽再打包，不会有双重框
+            -- l = node_hpack(l.head) -- 生成新的行宽，或node.dimensions计算
+            -- if w < l.width then w = l.width end
+            if most_w < actual_vbox_width then most_w = actual_vbox_width end
         end
         
         head = node_vpack(head)
