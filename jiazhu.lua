@@ -49,7 +49,7 @@ local tex_dimen_textwidth = tex.dimen.textwidth
 local tex_linebreak = tex.linebreak
 local tex_sp = tex.sp
 
----[[ 结点跟踪工具
+--[[ 结点跟踪工具
 local function show_detail(n, label) 
     print(">>>>>>>>>"..label.."<<<<<<<<<<")
     print(nodes.toutf(n))
@@ -142,13 +142,13 @@ local function par_break(par_head, hsize, to_stretch)
     local para = {hsize=hsize}
     local info
     new_head, info = tex_linebreak(new_head, para)
-    show_detail(new_head, "new_head")
-    print("info[d, g, l, demerites]",
-    info.prevdepth,
-    info.prevgraf,
-    info.looseness,
-    info.demerits
-)
+    -- show_detail(new_head, "new_head")
+    -- print("info[d, g, l, demerites]",
+    -- info.prevdepth,
+    -- info.prevgraf,
+    -- info.looseness,
+    -- info.demerits
+    -- )
 
     return new_head, info
 end
