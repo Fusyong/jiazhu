@@ -39,10 +39,9 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [x] 无用结点清洗
     * [x] 计数考虑直排盒子（**问题在此**）
 * [x] 在标题中无效
-* [x] 优化夹注断行算法（目前每次重新断行后取前两行，往往质量较低，宽度也不可控，常导致溢出）
-  * [x] 使用parshape一次完成分组
-  * [ ] 监控质量
-  * [ ] 控制勉强挤入过多（悬挂在版心外）
+* [x] 兼容新函数tex.preparelinebreak()
+  * [x] parfillskip不起作用（用自定glue代替，但可能影响标点压缩模块，导致同样内容的两行不整齐）
+* [ ] 监控tex.linebreak()的质量
 * [ ] 调整夹注排式
   * [X] 夹注前空过大
   * [ ] 与narrower重叠使用缩进（当在linebreak设置）
@@ -54,8 +53,8 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
   * [ ] 或检查正文行overfull，压缩标点
 * [ ] 模块化，增加用户接口
   * [ ] 双行兼容单行
-* [ ] parfillskip
-  * 不起作用（目前用自定glue代替，但可能影响标点压缩模块，导致同样内容的两行不整齐）
+* [x] 优化夹注断行算法（目前每次重新断行后取前两行，往往质量较低，宽度也不可控，常导致溢出）
+  * [x] 使用parshape一次完成分组(废弃，因插图时可能导致错误，且目前对参数过于敏感导致某些夹注分行时溢出而致无限循环，存档为jiazhu_parshape.lua)
 
 # 关于断行、分段的备用资料
 

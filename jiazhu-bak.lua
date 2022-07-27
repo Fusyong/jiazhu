@@ -10,10 +10,7 @@ local par_id = nodes.nodecodes.par
 local penalty_id = nodes.nodecodes.penalty
 local rule_id = nodes.nodecodes.rule
 local vlist_id = nodes.nodecodes.vlist
-local correctionskip_id = nodes.subtypes.glue.correctionskip
-local kern_id = nodes.nodecodes.kern
 
-local node_tail = node.tail
 local node_copylist = node.copylist
 local node_count = node.count
 local node_dimensions = node.dimensions
@@ -159,27 +156,10 @@ local function jiazhu_hsize(hlist, current_n)
     return d
 end
 
--- 找到最后一个对视觉长度有影响的结点glyph_or_list_rule_kern
-local function last_visible_node(head)
-    local n = node_tail(head)
-    while n do
-        if n.id == glue_id
-        or n.id == hlist_id
-        or n.id == vlist_id
-        or n.id == rule_id
-        or n.id == kern_id
-        then
-            return n
-        end
-        n = n.prev
-    end
-end
-
 -- 生成双行夹注
 local function make_jiazhu_box(hsize, boxes)
     local b = boxes[1]
-    -- local box_width = jiazhu_hsize(b, b.head)  -- 实际测量宽度，不适用width属性
-    local box_width = b.width
+    local box_width = jiazhu_hsize(b, b.head)  -- 实际测量宽度，不适用width属性
     -- show_detail(b.head,"here")
     local b_list = b.list
     local to_remove -- 本条已经完成，需要移除
@@ -244,32 +224,7 @@ local function make_jiazhu_box(hsize, boxes)
     end
 
     -- 打包，修改包的高度和行距
-    local most_w = 0  -- 最大行宽
-    for l in node_traverseid(hlist_id, box_head) do
-        -- 清楚禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
-        for g in node_traverseid(glue_id, l.head) do
-            if g.subtype == correctionskip_id then
-                l.head,g = node_remove(l.head, g)
-            end
-        end
-
-        local last_v_n = last_visible_node(l.head)
-        local actual_vbox_width = node.dimensions(
-            l.glue_set,
-            l.glue_sign,
-            l.glue_order,
-            l.head,
-            last_v_n.next
-        )
-
-        l.width = nil  --清楚行宽再打包，不会有双重框
-        -- l = node_hpack(l.head) -- 生成新的行宽，或node.dimensions计算
-        -- if w < l.width then w = l.width end
-        if most_w < actual_vbox_width then most_w = actual_vbox_width end
-    end
     box_head = node_vpack(box_head)
-    box_head.width = most_w
-
     local skip = tex_sp("0.08em") -- 夹注行间距
     local sub_glue_h = 0 -- 计算删除的胶高度
     local n = box_head.head

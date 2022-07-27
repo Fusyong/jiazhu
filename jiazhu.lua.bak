@@ -10,22 +10,7 @@ local par_id = nodes.nodecodes.par
 local penalty_id = nodes.nodecodes.penalty
 local rule_id = nodes.nodecodes.rule
 local vlist_id = nodes.nodecodes.vlist
-local correctionskip_id = nodes.subtypes.glue.correctionskip
-local righthangskip_id = nodes.subtypes.glue.righthangskip -- node.subtype("righthangskip")
-local lefthangskip_id = nodes.subtypes.glue.lefthangskip
-local leftskip_id = nodes.subtypes.glue.leftskip
-local rightskip_id = nodes.subtypes.glue.rightskip
-local leftfill_id = nodes.subtypes.glue.leftfill
-local rightfill_id = nodes.subtypes.glue.rightfill
-local correctionskip_id = nodes.subtypes.glue.correctionskip
-local parinitleftskip_id = nodes.subtypes.glue.parinitleftskip
-local parinitrightskip_id = nodes.subtypes.glue.parinitrightskip
-local parfillleftskip_id = nodes.subtypes.glue.parfillleftskip
-local parfillrightskip_id = nodes.subtypes.glue.parfillrightskip
-local indentskip_id = nodes.subtypes.glue.indentskip
-local kern_id = nodes.nodecodes.kern
 
-local node_tail = node.tail
 local node_copylist = node.copylist
 local node_count = node.count
 local node_dimensions = node.dimensions
@@ -80,9 +65,7 @@ local function boxes_to_rules(head)
     while n do
         if node_hasattribute(n, 2, 222) and n.id == hlist_id then
             local w = node_new(rule_id)
-            -- TODO 太窄可能导致前面的正文太稀疏；
-            -- 太宽可能导致短注估算错误
-            w.width = tex_sp("2em")
+            w.width = tex_sp("1em")
             node_setattribute(w, 3, 333)
             head = node_insertbefore(head, n, w)
             local removed
@@ -106,49 +89,57 @@ local function par_break(par_head, hsize, to_stretch)
 
     local is_vmode_par = (new_head.id == par_id)
 
-    local current_node
     if not is_vmode_par then
-        current_node = node_new("par", "vmodepar")
-        new_head, current_node = node_insertbefore(new_head, new_head, current_node)
+        local vmodepar_node = node_new("par", "vmodepar")
+        new_head, _ = node_insertbefore(new_head, new_head, vmodepar_node)
+    end
+
+    -- 删除最后的胶；添加无限罚分和parfillskip；保障pre指针正确
+    local tail = node_slide(new_head) --node.tail()不检查前后指针
+    if tail.id == glue_id then
+        new_head, tail = node_remove(new_head, tail, true)
+        node_free(tail)
+    end
+
+    -- 添加无限罚分
+    local penalty = node_new("penalty")
+    penalty.penalty = 10000
+    new_head, tail = node_insertafter(new_head, tail, penalty)
+    
+    -- 添加hskip
+    local hskip = node_new("glue")
+    if to_stretch then
+        hskip.width = 0
+        hskip.stretch = hsize
     else
-        current_node = new_head
+        hskip.width = hsize -- 能模仿系统断行
+        hskip.shrink = hsize -- 能模仿系统断行
     end
+    new_head, tail = node_insertafter(new_head, tail, hskip)
 
-
-    current_node = current_node.next
-    if current_node.subtype ~= indentskip_id then
-        local indentskip= node_new("glue", "indentskip")
-        new_head, current_node = node_insertbefore(new_head, current_node, indentskip)
-    end
-
+    -- 添加段末胶parfillskip（ TODO 似乎不起作用）
+    local parfillskip = node_new("glue", "parfillskip") --一般是0pt plus 1fil
+    parfillskip.stretch = 2^16 -- 可拉伸量2^16(65536)意义不明
+    parfillskip.stretchorder = 2^16 --拉伸倍数2(fil)，意义不明
+    new_head, tail = node_insertafter(new_head, tail, parfillskip)
+  
     -- 保障prev指针正确
     node_slide(new_head)
-    
+
     language.hyphenate(new_head) -- 断词，给单词加可能的连字符断点
     new_head = node_kerning(new_head) -- 加字间（出格）
     new_head = node_ligaturing(new_head) -- 西文合字
     
-    local t, n_parinitleftskip, n_parinitrightskip, n_parfillleftskip, n_parfillrightskip
-    new_head, t, n_parinitleftskip, n_parinitrightskip, n_parfillleftskip, n_parfillrightskip = tex.preparelinebreak(new_head)
-    
-    if to_stretch then
-        n_parfillrightskip.width = 0
-        n_parfillrightskip.stretch = hsize
-    else
-        n_parfillrightskip.width = hsize -- 能模仿系统断行
-        n_parfillrightskip.shrink = hsize -- 能模仿系统断行
-    end
-    
+    -- 用hsize控制分行宽度：{hsize =  tex_sp("25em")}；
+    -- 语言设置作用不详：{lang = tex.language}
+    -- , lefskip = leftskip_spec 不起作用
+    -- local leftskip_spec = node_new("gluespec")
+    -- leftskip_spec.width = tex_sp("5em")
+    -- leftskip_spec.stretch = tex_sp("5em")
+    -- leftskip_spec.stretchorder = 2
     local para = {hsize=hsize}
     local info
     new_head, info = tex_linebreak(new_head, para)
-    show_detail(new_head, "new_head")
-    print("info[d, g, l, demerites]",
-    info.prevdepth,
-    info.prevgraf,
-    info.looseness,
-    info.demerits
-)
 
     return new_head, info
 end
@@ -165,27 +156,10 @@ local function jiazhu_hsize(hlist, current_n)
     return d
 end
 
--- 找到最后一个对视觉长度有影响的结点glyph_or_list_rule_kern
-local function last_visible_node(head)
-    local n = node_tail(head)
-    while n do
-        if n.id == glue_id
-        or n.id == hlist_id
-        or n.id == vlist_id
-        or n.id == rule_id
-        or n.id == kern_id
-        then
-            return n
-        end
-        n = n.prev
-    end
-end
-
 -- 生成双行夹注
 local function make_jiazhu_box(hsize, boxes)
     local b = boxes[1]
-    -- local box_width = jiazhu_hsize(b, b.head)  -- 实际测量宽度，不适用width属性
-    local box_width = b.width
+    local box_width = jiazhu_hsize(b, b.head)  -- 实际测量宽度，不适用width属性
     -- show_detail(b.head,"here")
     local b_list = b.list
     local to_remove -- 本条已经完成，需要移除
@@ -217,7 +191,7 @@ local function make_jiazhu_box(hsize, boxes)
         node_flushlist(boxes[1].head)
         table.remove(boxes, 1)
     else -- 需要循环安排的长盒子
-        box_head, info = par_break(b_list, hsize, true)-- 末行压缩导致很多流溢
+        box_head, info = par_break(b_list, hsize, false)
 
         -- 只取前两行所包含的节点
         local line_num = 0
@@ -250,32 +224,7 @@ local function make_jiazhu_box(hsize, boxes)
     end
 
     -- 打包，修改包的高度和行距
-    local most_w = 0  -- 最大行宽
-    for l in node_traverseid(hlist_id, box_head) do
-        -- 清楚禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
-        for g in node_traverseid(glue_id, l.head) do
-            if g.subtype == correctionskip_id then
-                l.head,g = node_remove(l.head, g)
-            end
-        end
-
-        local last_v_n = last_visible_node(l.head)
-        local actual_vbox_width = node.dimensions(
-            l.glue_set,
-            l.glue_sign,
-            l.glue_order,
-            l.head,
-            last_v_n.next
-        )
-
-        l.width = nil  --清楚行宽再打包，不会有双重框
-        -- l = node_hpack(l.head) -- 生成新的行宽，或node.dimensions计算
-        -- if w < l.width then w = l.width end
-        if most_w < actual_vbox_width then most_w = actual_vbox_width end
-    end
     box_head = node_vpack(box_head)
-    box_head.width = most_w
-
     local skip = tex_sp("0.08em") -- 夹注行间距
     local sub_glue_h = 0 -- 计算删除的胶高度
     local n = box_head.head
