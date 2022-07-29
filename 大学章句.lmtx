@@ -3,7 +3,8 @@
 %% 在processors类回调中干预断行；
 %% tex.linebreak()的用法；
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\setuppapersize[A4,landscape]
+% \setuppapersize[A4,landscape]
+\setuppapersize[A4]
 
 % 中文配置
 \mainlanguage[cn]
@@ -107,8 +108,9 @@ jiazhu.register()
 
 %%%%% 显式视觉调试信息 %%%%
 % \showboxes
-\showframe
+% \showframe
 % \showmakeup
+% \tracingnodes1 %1,2
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \starttext

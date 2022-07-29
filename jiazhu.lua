@@ -49,7 +49,7 @@ local tex_dimen_textwidth = tex.dimen.textwidth
 local tex_linebreak = tex.linebreak
 local tex_sp = tex.sp
 
---[[ 结点跟踪工具
+---[[ 结点跟踪工具
 local function show_detail(n, label) 
     print(">>>>>>>>>"..label.."<<<<<<<<<<")
     print(nodes.toutf(n))
@@ -61,7 +61,7 @@ local function show_detail(n, label)
         elseif i.id == penalty_id then
             print(i, i.penalty)
         elseif i.id == glue_id then
-            print(i, i.width, i.stretch,i.stretchorder, i.shrink, i.shrinkorder)
+            print(i, i.width, i.stretch, i.shrink)
         elseif i.id == hlist_id then
             print(i, nodes.toutf(i.list))
         else
