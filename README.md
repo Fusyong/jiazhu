@@ -46,9 +46,11 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [x] `tex.preparelinebreak()`注入的parfillskip有效
   * [ ] 与narrower重叠使用缩进（当在linebreak设置）
     * [X] 暂时用\leftskip代替
+* [x] 夹注长度错误，导致与正文重叠，悬挂在版心外
+  * [x] 逐行手动测量实际视觉长度
+    * [x] 检查correctionskip导致的悬挂（因为是负值，无法通过手动测量感知，需清除后再测量）
+  * [x] 比较视觉长度与盒子自然宽度，以大者为准
 * [ ] 监控`tex.linebreak()`的质量，检查夹注行overfull
-  * [x] 逐行手动测量实际长度
-    * [x] 检查correctionskip导致的悬挂（因为是负值，无法通过手动测量感知）
   * [ ] 检查、调整linebreak、hpack、vpack前后的info
   * [ ] 或检查正文行overfull，压缩标点
 * [ ] 模块化，增加用户接口
