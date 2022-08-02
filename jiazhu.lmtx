@@ -83,17 +83,16 @@
 %%%%%%%%%%%%% 回调模块 %%%%%%%%%%%%%
 \startluacode
 
----[[ 使用直排模块
-local vertical_typeset = require("../vertical-typesetting/vertical_typeset.lua")
-vertical_typeset.opt()--moduledata.vertical_typese.opt()
---]]
-
 ---[[
 -- 使用本地中文标点压缩模块
 local zhspuncs = require("../zhfonts/t-zhspuncs.lua")
 zhspuncs.opt() --moduledata.zhspuncs.opt()
 --]]
 
+---[[ 使用直排模块
+local vertical_typeset = require("../vertical-typesetting/vertical_typeset.lua")
+vertical_typeset.opt()--moduledata.vertical_typese.opt()
+--]]
 
 ---[[
 local jiazhu
@@ -106,36 +105,19 @@ jiazhu.register()
 
 
 %%%%% 显式视觉调试信息 %%%%
-% \showboxes
-\showframe
+\showboxes
+% \showframe
 % \showmakeup
-% \tracingnodes[1] %1,2
+% \tracingnodes=1 %1,2
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \starttext
 
+\zhangj{右右右右右。右右右右右。}
 
-所謂治國必先齊其家者，其家不可教而能教人者，無之。故君子不出家而成教於國：孝者，所以事君也；弟者，所以事長也；慈者，所以使衆也。
-\jiazh{弟，去聲。長，上聲。○身修，則家可教矣；孝、弟、慈，所以修身而教於家者也；然而國之所以事君事長使衆之道不外乎此。此所以家齊於上，而教成於下也。}
-\shumh{康誥}曰「如保赤子」，心誠求之，雖不中不遠矣。未有學養子而后嫁者也！
-\jiazh{中，去聲。○此引書而釋之，又明立教之本不假强爲，在識其端而推廣之耳。}
-一家仁，一國興仁；一家讓，一國興讓；一人貪戾，一國作亂；其機如此。此謂一言僨事，一人定國。
-\jiazh{僨，音奮。○一人，謂君也。機，發動所由也。僨，覆敗也。此言教成於國之效。}
-\zhuanmh{堯}\zhuanmh{舜}帥天下以仁，而民從之；\zhuanmh{桀}\zhuanmh{紂}帥天下以暴，而民從之；其所令反其所好，而民不從。是故君子有諸己而后求諸人，無諸己而后非諸人。所藏乎身不恕，而能喻諸人者，未之有也。
-\jiazh{好，去聲。○此又承上文一人定國而言。有善於己，然後可以責人之善；無惡於己，然後可以正人之惡。皆推己以及人，所謂恕也，不如是，則所令反其所好，而民不從矣。喻，曉也。}
-故治國在齊其家。
-\jiazh{通結上文。}
-\shumh{詩}云：「桃之夭夭，其葉蓁蓁；之子於歸，宜其家人。」宜其家人，而后可以教國人。
-\jiazh{夭，平聲。蓁，音臻。○\shumhs{詩}\shumhs{周南}\shumhs{桃夭}之篇。夭夭，少好貌。蓁蓁，美盛貌。興也。之子，猶言是子，此指女子之嫁者而言也。婦人謂嫁曰歸。宜，猶善也。}
-\shumh{詩}云：「宜兄宜弟。」宜兄宜弟，而后可以教國人。
-\jiazh{\shumhs{詩}\shumhs{小雅}\shumhs{蓼蕭}篇。}
-\shumh{詩}云：「其儀不忒，正是四國。」其爲父子兄弟足法，而后民法之也。
-\jiazh{\shumhs{詩}\shumhs{曹風}\shumhs{鳴鳩}篇。忒，差也。}
-此謂治國在齊其家。
-\jiazh{此三引\shumhs{詩}，皆以咏嘆上文之事，而又結之如此。其味深長，最宜潜玩。}
-
-
-
+\zhangj{右傳之七章。釋正心修身。
+\jiazh{此亦承上章以起下章。蓋意誠則真無惡而實有善矣，所以能存是心以檢其身。然或但知誠意，而不能密察此心之存否，則又無以直内而修身也。○自此以下，并以舊文爲正。}
+}
 
 \stoptext
 

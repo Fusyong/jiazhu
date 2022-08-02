@@ -17,7 +17,6 @@ local leftskip_id = nodes.subtypes.glue.leftskip
 local rightskip_id = nodes.subtypes.glue.rightskip
 local leftfill_id = nodes.subtypes.glue.leftfill
 local rightfill_id = nodes.subtypes.glue.rightfill
-local correctionskip_id = nodes.subtypes.glue.correctionskip
 local parinitleftskip_id = nodes.subtypes.glue.parinitleftskip
 local parinitrightskip_id = nodes.subtypes.glue.parinitrightskip
 local parfillleftskip_id = nodes.subtypes.glue.parfillleftskip
@@ -61,7 +60,7 @@ local function show_detail(n, label)
         elseif i.id == penalty_id then
             print(i, i.penalty)
         elseif i.id == glue_id then
-            print(i, i.width, i.stretch, i.shrink)
+            print(i, i.width, i.stretch, i.shrink, i.stretchorder, i.shrinkorder)
         elseif i.id == hlist_id then
             print(i, nodes.toutf(i.list))
         else
@@ -132,13 +131,16 @@ local function par_break(par_head, hsize, to_stretch)
     new_head, t, n_parinitleftskip, n_parinitrightskip, n_parfillleftskip, n_parfillrightskip = tex.preparelinebreak(new_head)
     
     if to_stretch then
-        n_parfillrightskip.width = 0
-        n_parfillrightskip.stretch = hsize
+        -- 默认即是一级无限拉伸胶
+        -- n_parfillrightskip.width = 0
+        -- n_parfillrightskip.stretch = hsize
     else
         n_parfillrightskip.width = hsize -- 能模仿系统断行
         n_parfillrightskip.shrink = hsize -- 能模仿系统断行
     end
     
+    -- tracingparagraphs=1 输出跟踪信息
+    -- emergencystretch=hsize*0.1
     local para = {hsize=hsize}
     local info
     new_head, info = tex_linebreak(new_head, para)
@@ -252,26 +254,25 @@ local function make_jiazhu_box(hsize, boxes)
     -- 打包，修改包的高度和行距
     local most_w = 0  -- 最大行宽
     for l in node_traverseid(hlist_id, box_head) do
-        -- 清楚禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
+        -- 清除错误禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
         for g in node_traverseid(glue_id, l.head) do
             if g.subtype == correctionskip_id then
                 l.head,g = node_remove(l.head, g)
             end
         end
-
-        local last_v_n = last_visible_node(l.head)
-        local actual_vbox_width = node.dimensions(
+        -- local last_v_n = last_visible_node(l.head)
+        -- 测量宽度，生成新的行宽node_hpack(l.head)
+        local d = node.dimensions(
             l.glue_set,
             l.glue_sign,
             l.glue_order,
-            l.head,
-            last_v_n.next
+            l.head
+            -- last_v_n.next
         )
 
-        l.width = nil  --清楚行宽再打包，不会有双重框
-        -- l = node_hpack(l.head) -- 生成新的行宽，或node.dimensions计算
-        -- if w < l.width then w = l.width end
-        if most_w < actual_vbox_width then most_w = actual_vbox_width end
+        -- 宽度取最大值：实际视觉宽度d，盒子宽度
+        if most_w < d then most_w = d end
+        if most_w < l.width then most_w = l.width end
     end
     box_head = node_vpack(box_head)
     box_head.width = most_w
