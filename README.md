@@ -2,6 +2,19 @@
 
 也是本人学习LuaMetaTeX、LuaTeX的练习项目，主要涉及：段落与行的结点列表的操控；使用tex.linebreak()函数等干预断行；使用回调函数。会保留较多学习性的注释和代码。
 
+## 运行
+
+1. 仅在[ConTeXt LMTX](https://wiki.contextgarden.net/Installation)环境测试，其他版本的ConTeXt当不支持。ConTeXt LMTX是与LuaMetaTeX(LuaTeX的后继者)配合使用的、最新的ConTeXt版本。调整后当可用于LuaTeX。可以使用`context --version && luametatex --version`命令查看你的环境版本。
+1. 下载并并排放置要用到项目文件夹：[vertical-typesetting](https://github.com/Fusyong/vertical-typesetting)，[zhfonts](https://github.com/Fusyong/zhfonts)，和本项目[jiazhu](https://github.com/Fusyong/jiazhu)。
+1. 如下解释实例文档：
+    >  ```shell
+    >  > context 大学章句.lmtx
+    >  ```
+1. 如果控制台显示中文时有乱码，可用命令临时改变代码页：
+    > ```shell
+    > > chcp 65001
+    > ```
+
 ## 效果
 
 

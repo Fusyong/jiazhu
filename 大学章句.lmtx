@@ -3,8 +3,8 @@
 %% 在processors类回调中干预断行；
 %% tex.linebreak()的用法；
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\setuppapersize[A4,landscape]
-% \setuppapersize[A4]
+% \setuppapersize[A4,landscape]
+\setuppapersize[A4]
 
 % 中文配置
 \mainlanguage[cn]
