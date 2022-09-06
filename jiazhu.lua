@@ -81,8 +81,8 @@ local function boxes_to_rules(head)
             local w = node_new(rule_id)
             -- TODO 太窄可能导致前面的正文太稀疏；
             -- 太宽可能导致短注估算错误
-            w.width = tex_sp("2em")
-            -- w.width = tex_sp("1.5em")
+            -- w.width = tex_sp("2em")
+            w.width = tex_sp("1em")
             node_setattribute(w, 3, 333)
             head = node_insertbefore(head, n, w)
             local removed
@@ -233,8 +233,8 @@ local function make_jiazhu_box(hsize, boxes)
             {0, hsize},{0, hsize},
             {0, tex.hsize}
         }
-        -- local para = {parshape=parshape}
-        local para = {hsize=hsize}
+        -- local para = {hsize=hsize} -- 同行宽试排，对小宽度不利
+        local para = {parshape=parshape} -- 据段落形状试排
         box_head, info = par_break(b_list, para, true)-- 末行压缩导致很多流溢
 
         -- 只取前两行所包含的节点
@@ -279,7 +279,7 @@ local function make_jiazhu_box(hsize, boxes)
             [correctionskip_id]=true,
             -- [indentskip_id]=true,
             -- [lefthangskip_id]=true,
-            -- [righthangskip_id]=true,
+            [righthangskip_id]=true,
             -- [leftskip_id]=true,
             -- [rightskip_id]=true,
             -- [parinitleftskip_id]=true,
@@ -288,9 +288,10 @@ local function make_jiazhu_box(hsize, boxes)
             -- [parfillrightskip_id]=true,
         }
         local n = l.head
+        local width_dropdown = 0 -- 删除的元素宽度
         while n do
-            if n.id == par_id
-            or (n.id == glue_id and to_remove_glues[n.subtype]) then
+            if n.id == glue_id and to_remove_glues[n.subtype] then
+                width_dropdown = width_dropdown + n.width
                 l.head,n = node_remove(l.head, n, true)
             else
                 n = n.next
@@ -298,27 +299,29 @@ local function make_jiazhu_box(hsize, boxes)
         end
         -- inspect(l)
         -- show_detail(l.head, "夹注行详情，后")
-        -- for g in node_traverseid(glue_id, l.head) do
-        --     if g.subtype == correctionskip_id then
-        --         l.head,g = node_remove(l.head, g)
-        --     end
-        -- end
-        -- 测量宽度，生成新的行宽node_hpack(l.head)
-        local last_v_n = last_visible_node(l.head)
-        local d = node.dimensions(
-            l.glue_set,
-            l.glue_sign,
-            l.glue_order,
-            l.head
-            -- last_v_n.next
-        )
 
-        -- 宽度取最大值：实际视觉宽度d，盒子宽度
-        if most_w < d then most_w = d end
-        if most_w < l.width then most_w = l.width end
+        -- TODO 测量宽度/标记宽度与实际视觉宽度不一致
+        -- 测量宽度与生成新的行宽node_hpack(l.head)一致，与旧行剩余宽度不同
+        -- local last_v_n = last_visible_node(l.head)
+        -- local actual_vbox_width = node.dimensions(
+        --     l.glue_set,
+        --     l.glue_sign,
+        --     l.glue_order,
+        --     l.head
+        --     -- ,last_v_n.next
+        -- )
+        -- print(l.head,actual_vbox_width)
+        -- 宽度取最大值：实际视觉宽度，盒子宽度
+        -- if most_w < actual_vbox_width then most_w = actual_vbox_width end
+
+        l.width = l.width - width_dropdown
+        if most_w < l.width then most_w = l.width end -- 旧版切换开关（两处！！）
+    end
+    
+    for l in node_traverseid(hlist_id, box_head) do
+        l.width = most_w
     end
     box_head = node_vpack(box_head)
-    box_head.width = most_w
 
     local skip = tex_sp("0.08em") -- 夹注行间距
     local sub_glue_h = 0 -- 计算删除的胶高度

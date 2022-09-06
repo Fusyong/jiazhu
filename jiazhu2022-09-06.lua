@@ -150,11 +150,9 @@ local function par_break(par_head, para, to_stretch)
     
     -- tracingparagraphs=1 输出跟踪信息
     -- emergencystretch=last_group_width*0.1
-    -- local para = {hsize=last_group_width}
     local info
-    -- show_detail(new_head, "new_head1")
     new_head, info = tex_linebreak(new_head, para)
-    -- show_detail(new_head, "new_head2")
+    -- show_detail(new_head, "new_head")
     -- print("info[d, g, l, demerites]",
     -- info.prevdepth,
     -- info.prevgraf,

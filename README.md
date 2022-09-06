@@ -54,7 +54,7 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
 * [X] 夹注前空过大
 * [x] 优化夹注断行算法（目前每次重新断行后取前两行，往往质量较低，宽度也不可控，常导致溢出）
     * [x] 使用parshape一次完成分组(**已废弃**，因插图时可能导致错误，且目前对参数过于敏感导致某些夹注分行时溢出而致无限循环，存档为jiazhu_parshape.lua)
-    * [ ] 使用parshape分组，第三行以后使用hsize，以改善前两行的质量
+    * [x] 使用parshape分组，第三行以后使用hsize，以改善前两行较短时的质量（略有改善）
 * [x] 兼容新函数`tex.preparelinebreak()`
     * [x] parfillskip不起作用（用自定glue代替，但可能影响标点压缩模块，导致同样内容的两行不整齐）
         * [x] `tex.preparelinebreak()`注入的parfillskip有效
