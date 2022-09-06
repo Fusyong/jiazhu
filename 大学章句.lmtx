@@ -50,6 +50,22 @@
 %%%% 使用系统中安装的中文标点压缩模块 %%%%
 % \usemodule[zhspuncs]
 
+% 设置拼音字体
+\definefont[pinyinfont][name:ahpinying*default at 9pt]
+% 设置注音命令
+\define[2]\pinyin{%
+    \setbox1 = \hbox{#1}%
+    \setbox2 = \hbox{\darkgray \pinyinfont #2}%
+    \newdimen\maxwd%
+    \ifdim \wd1>\wd2 \maxwd=\wd1 \else \maxwd=\wd2 \fi%
+    \setbox1 = \hbox to \maxwd{\hfill \box1 \hfill}%
+    \setbox2 = \hbox to \maxwd{\hfill \box2 \hfill}%
+    \hskip0pt plus0.5em\vbox{\setupinterlinespace[line=0.5em]\box2\box1}% above line
+    % \hskip0pt plus0.5em\vtop{\setupinterlinespace[line=0.5em]\box1\box2}% under line
+    % \hskip0pt plus5pt\vtop{\box1\godown[-1.1em]\box2}%
+    % #1\llap{\lower 3ex\box2}%
+}
+
 % 双行夹注
 \newdimen\jiazhsize
 \jiazhsize=10.5pt

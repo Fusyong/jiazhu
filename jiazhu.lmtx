@@ -111,9 +111,12 @@ jiazhu.register()
 % \tracingnodes=1 %1,2
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% begin example
+\setupinterlinespace[line=4ex]
+
+\setuptype[style=\ttx]
 \starttext
 
-\zhangj{右右右右右。右右右右右。}
 
 \zhangj{右傳之七章。釋正心修身。
 \jiazh{此亦承上章以起下章。蓋意誠則真無惡而實有善矣，所以能存是心以檢其身。然或但知誠意，而不能密察此心之存否，則又無以直内而修身也。○自此以下，并以舊文爲正。}

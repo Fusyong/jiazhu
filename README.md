@@ -7,13 +7,13 @@
 1. 仅在[ConTeXt LMTX](https://wiki.contextgarden.net/Installation)环境测试，其他版本的ConTeXt当不支持。ConTeXt LMTX是与LuaMetaTeX(LuaTeX的后继者)配合使用的、最新的ConTeXt版本。调整后当可用于LuaTeX。可以使用`context --version && luametatex --version`命令查看你的环境版本。
 1. 下载并并排放置要用到项目文件夹：[vertical-typesetting](https://github.com/Fusyong/vertical-typesetting)，[zhfonts](https://github.com/Fusyong/zhfonts)，和本项目[jiazhu](https://github.com/Fusyong/jiazhu)。
 1. 如下解释实例文档：
-    >  ```shell
-    >  > context 大学章句.lmtx
-    >  ```
+    >```shell
+    >> context 大学章句.lmtx
+    >```
 1. 如果控制台显示中文时有乱码，可用命令临时改变代码页：
-    > ```shell
-    > > chcp 65001
-    > ```
+    >```shell
+    >> chcp 65001
+    >```
 
 ## 效果
 
@@ -47,27 +47,30 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
 * [x] 夹注转换成标记结点和数据表
 * [x] 夹注整理，分段插入
 * [x] 与直排模块整合
-  * [x] 长夹注（78字以上）内存溢出，死循环
-    * [x] 无用结点清洗
-    * [x] 计数考虑直排盒子（**问题在此**）
+    * [x] 长夹注（78字以上）内存溢出，死循环
+        * [x] 无用结点清洗
+        * [x] 计数考虑直排盒子（**问题在此**）
 * [x] 在标题中无效
 * [X] 夹注前空过大
 * [x] 优化夹注断行算法（目前每次重新断行后取前两行，往往质量较低，宽度也不可控，常导致溢出）
-  * [x] 使用parshape一次完成分组(**已废弃**，因插图时可能导致错误，且目前对参数过于敏感导致某些夹注分行时溢出而致无限循环，存档为jiazhu_parshape.lua)
+    * [x] 使用parshape一次完成分组(**已废弃**，因插图时可能导致错误，且目前对参数过于敏感导致某些夹注分行时溢出而致无限循环，存档为jiazhu_parshape.lua)
+    * [ ] 使用parshape分组，第三行以后使用hsize，以改善前两行的质量
 * [x] 兼容新函数`tex.preparelinebreak()`
-  * [x] parfillskip不起作用（用自定glue代替，但可能影响标点压缩模块，导致同样内容的两行不整齐）
-    * [x] `tex.preparelinebreak()`注入的parfillskip有效
-  * [ ] 与narrower重叠使用缩进（当在linebreak设置）
-    * [X] 暂时用\leftskip代替
+    * [x] parfillskip不起作用（用自定glue代替，但可能影响标点压缩模块，导致同样内容的两行不整齐）
+        * [x] `tex.preparelinebreak()`注入的parfillskip有效
+    * [ ] 与narrower重叠使用缩进（当在linebreak设置）
+        * [X] 暂时用\leftskip代替
 * [x] 夹注长度错误，导致与正文重叠，悬挂在版心外
-  * [x] 逐行手动测量实际视觉长度
-    * [x] 检查correctionskip导致的悬挂（因为是负值，无法通过手动测量感知，需清除后再测量）
-  * [x] 比较视觉长度与盒子自然宽度，以大者为准
+    * [x] 逐行手动测量实际视觉长度
+        * [x] 检查correctionskip导致的悬挂（因为是负值，无法通过手动测量感知，需清除后再测量）
+    * [x] 比较视觉长度与盒子自然宽度，以大者为准
+* [ ] 有时长夹注行后有空行（行末有不可见结点？）
 * [ ] 监控`tex.linebreak()`的质量，检查夹注行overfull
-  * [ ] 检查、调整linebreak、hpack、vpack前后的info
-  * [ ] 或检查正文行overfull，压缩标点
+    * [ ] 检查、调整linebreak、hpack、vpack前后的info
+    * [ ] 或检查正文行overfull，压缩标点
 * [ ] 模块化，增加用户接口
-  * [ ] 双行兼容单行
+    * [ ] 双行兼容单行
+* [ ] 管理属性，防止冲突，参考ruby模块
 
 # 关于断行、分段的备用资料
 
