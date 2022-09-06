@@ -272,8 +272,8 @@ local function make_jiazhu_box(hsize, boxes)
     -- 打包，修改包的高度和行距
     local most_w = 0  -- 最大行宽
     for l in node_traverseid(hlist_id, box_head) do
-        inspect(l)
-        show_detail(l.head, "夹注行详情，前")
+        -- inspect(l)
+        -- show_detail(l.head, "夹注行详情，前")
         -- 清除：
         -- 错误禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
         local to_remove_glues = {
@@ -297,8 +297,8 @@ local function make_jiazhu_box(hsize, boxes)
                 n = n.next
             end
         end
-        inspect(l)
-        show_detail(l.head, "夹注行详情，后")
+        -- inspect(l)
+        -- show_detail(l.head, "夹注行详情，后")
 
         -- 测量宽度，生成新的行宽node_hpack(l.head)
         local last_v_n = last_visible_node(l.head)

@@ -275,13 +275,36 @@ local function make_jiazhu_box(hsize, boxes)
         -- show_detail(l.head, "夹注行详情，前")
         -- 清除：
         -- 错误禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
-        for g in node_traverseid(glue_id, l.head) do
-            if g.subtype == correctionskip_id then
-                l.head,g = node_remove(l.head, g)
+        local to_remove_glues = {
+            [correctionskip_id]=true,
+            -- [indentskip_id]=true,
+            -- [lefthangskip_id]=true,
+            -- [righthangskip_id]=true,
+            -- [leftskip_id]=true,
+            -- [rightskip_id]=true,
+            -- [parinitleftskip_id]=true,
+            -- [parinitrightskip_id]=true,
+            -- [parfillleftskip_id]=true,
+            -- [parfillrightskip_id]=true,
+        }
+        local n = l.head
+        while n do
+            if n.id == par_id
+            or (n.id == glue_id and to_remove_glues[n.subtype]) then
+                l.head,n = node_remove(l.head, n, true)
+            else
+                n = n.next
             end
         end
-        -- local last_v_n = last_visible_node(l.head)
+        -- inspect(l)
+        -- show_detail(l.head, "夹注行详情，后")
+        -- for g in node_traverseid(glue_id, l.head) do
+        --     if g.subtype == correctionskip_id then
+        --         l.head,g = node_remove(l.head, g)
+        --     end
+        -- end
         -- 测量宽度，生成新的行宽node_hpack(l.head)
+        local last_v_n = last_visible_node(l.head)
         local d = node.dimensions(
             l.glue_set,
             l.glue_sign,
