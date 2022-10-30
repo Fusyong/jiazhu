@@ -1,0 +1,46 @@
+%D \module
+%D   [     file=t-jiazhu,
+%D      version=2022-10-30,
+%D        title=jiazhu,
+%D     subtitle=Jiazhu (or 夹注, 割注) support,
+%D       author=黄复雄(Huang Fusyong),
+%D         date=2022-10-30,
+%D    copyright=黄复雄(Huang Fusyong),
+%D      license=GNU GPL 2.0,
+%D          url=https://github.com/Fusyong/jiazhu]
+\startmodule[jiazhu]
+\unprotect
+
+% 设置模块
+% pattern: quanjiao, kaiming, banjiao, yuanyang, hangjian
+\setupmodule[fontname=, fontsize=10.5pt, interlinespace=0.08em]
+
+% 双行夹注
+\define[1]\jiazh{%
+    \unskip%避免间距过大（原因不明）
+    \hskip 0pt plus 0.5em%与系统插入的中文字间胶一致
+    \hbox attr 2 = 222 {\tf\switchtobodyfont[\currentmoduleparameter{fontsize}]#1}%
+    % \hskip 0pt plus 0.5em% 使用后间距过小
+}
+
+% 导入lua
+\ctxlua{require("./t-jiazhu.lua")}
+
+% 传参设置命令
+% local named_values = utilities.parsers.settings_to_hash(keyvals)
+\def\jiazhuset[#1]{%
+    \ctxlua{Moduledata.jiazhu.set([==[#1]==])}%
+}
+% \currentmoduleparameter{pattern}
+% \moduleparameter{jiazhu}{pattern}
+\jiazhuset[\currentmoduleparameter{interlinespace}]
+
+% 在指定位置（\everystarttext）插入/应用命令
+\def\jiazhuappend{%
+    \ctxlua{Moduledata.jiazhu.append()}%
+}
+\appendtoks \jiazhuappend \to \everystarttext
+
+\protect
+\stopmodule
+\endinput

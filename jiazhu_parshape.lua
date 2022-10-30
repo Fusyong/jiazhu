@@ -445,7 +445,7 @@ function Moduledata.jiazhu.main(head)
     return out_head, true
 end
 
-function Moduledata.jiazhu.register()
+function Moduledata.jiazhu.append()
     -- 只能使用CLD样式添加任务
     -- "processors", "before"，只加了par vmodepar和左右parfill skip
     -- "processors", "after"，还加入了字间的glue userskip、标点前后的penalty userpenalty，可用于断行
