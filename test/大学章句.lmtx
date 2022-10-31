@@ -88,43 +88,18 @@
 \definefont[tidebars][name:stsong*default at 0.683\jiazhsize]
 \definebar[shumhs][text=\lower\exheight\hbox{\tidebars\rotate[rotation=-9]{\kern-0.16em～\kern-0.16em}}, repeat=yes, continue=no, offset=-0.25]
 
+%%%%%%%%%%%%% 使用模块 %%%%%%%%%%%%%
+% 竖排
+\usemodule[vtypeset]
 
-%%%%%%%%%%%%% 回调模块 %%%%%%%%%%%%%
-\usemodule[jiazhu][fontname=, fontsize=10.5pt, interlinespace=0.08em]
+% 夹注
+% default: fontname=\tf, fontsize=10.5pt, interlinespace=0.08em
+\usemodule[jiazhu][fontname=\it, fontsize=10.5pt, interlinespace=0.08em]
 
-%%%%%%%%%%%%% 回调模块 %%%%%%%%%%%%%
-
-% 双行夹注
-\newdimen\jiazhsize
-\jiazhsize=10.5pt
-\define[1]\jiazh{%
-    \unskip%避免间距过大（原因不明）
-    \hskip 0pt plus 0.5em%与系统插入的中文字间胶一致
-    \hbox attr 2 = 222 {\tf\switchtobodyfont[\the\jiazhsize]#1}%
-    % \hskip 0pt plus 0.5em% 使用后间距过小
-}
-
-\startluacode
-
----[[
--- 使用本地中文标点压缩模块
-local zhpunc = require("../zhpunc/t-zhpunc.lua")
-zhpunc.set("kaiming", "0.5") --设置
-zhpunc.append()
---]]
-
----[[ 使用直排模块
-local vertical_typeset = require("../vertical-typesetting/t-vtypeset.lua")
-vertical_typeset.append()--moduledata.vertical_typese.opt()
---]]
-
---[[
-local jiazhu = require("./t-jiazhu.lua")
-jiazhu.set("0.08em") --设置
-jiazhu.append()
---]]
-
-\stopluacode
+% 标点压缩
+% pattern: quanjiao(default), kaiming, banjiao, yuanyang, hangjian
+% spacequad: 0.5(default)
+\usemodule[zhpunc][pattern=kaiming, spacequad=0.5]
 
 
 %%%%% 显式视觉调试信息 %%%%

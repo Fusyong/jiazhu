@@ -2,11 +2,25 @@
 
 也是本人学习LuaMetaTeX、LuaTeX的练习项目，主要涉及：段落与行的结点列表的操控；使用tex.linebreak()函数等干预断行；使用回调函数。会保留较多学习性的注释和代码。
 
-## 运行
+## 安装和使用方法
+
+* 两种安装方法：
+    1. 按[ConTeXt官方指南](https://wiki.contextgarden.net/Modules)安装模块文件：`t-jiazhu.mkiv`（入口）和`t-jiazhu.lua`，然后使用`context --generate`命令更新文件索引
+    1. 将上述文件直接放在执行编译脚本命令时的当前路径（通常即排版脚本所在的目录，在vscode环境中即项目根目录）
+* 使用方法，在排版脚本前言中设置如下：
+
+```latex
+%%%%%%%%%%%%% 使用模块 %%%%%%%%%%%%%
+% default: fontname=\tf, fontsize=10.5pt, interlinespace=0.08em
+\usemodule[jiazhu][fontname=\it, fontsize=10.5pt, interlinespace=0.08em]
+
+```
+
+### 编译脚本
 
 1. 仅在[ConTeXt LMTX](https://wiki.contextgarden.net/Installation)环境测试，其他版本的ConTeXt当不支持。ConTeXt LMTX是与LuaMetaTeX(LuaTeX的后继者)配合使用的、最新的ConTeXt版本。调整后当可用于LuaTeX。可以使用`context --version && luametatex --version`命令查看你的环境版本。
-1. 下载并并排放置要用到项目文件夹：[vertical-typesetting](https://github.com/Fusyong/vertical-typesetting)，[zhfonts](https://github.com/Fusyong/zhfonts)，和本项目[jiazhu](https://github.com/Fusyong/jiazhu)。
-1. 如下解释实例文档：
+1. 安装相关插件：[vertical-typesetting](https://github.com/Fusyong/vertical-typesetting)，[zhfonts](https://github.com/Fusyong/zhfonts)，和本项目[jiazhu](https://github.com/Fusyong/jiazhu)。
+1. 如下编译排版脚本：
     >```shell
     >> context 大学章句.lmtx
     >```
