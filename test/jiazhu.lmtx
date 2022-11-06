@@ -81,13 +81,14 @@
 % 标点压缩
 % pattern: quanjiao(default), kaiming, banjiao, yuanyang, hangjian
 % spacequad: 0.5(default)
-\usemodule[zhpunc][pattern=kaiming, spacequad=0.5]
+\usemodule[zhpunc][pattern=banjiao, spacequad=0.5]
 
 
 
 %%%%% 显式视觉调试信息 %%%%
 \showboxes
 % \showframe
+\showglyphs
 % \showmakeup
 % \tracingnodes=1 %1,2
 

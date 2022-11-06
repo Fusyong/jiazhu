@@ -80,6 +80,9 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
 * [ ] 模块化，增加用户接口
     * [x] 模块化
     * [ ] 双行兼容单行
+* [x] 清理系统注入夹注盒子中的、有干扰的胶
+    * [x] 清理系统注入夹注盒子中的、有干扰的胶
+* [ ] 实测baseline_to_center，使夹注精确居中
 * [ ] 有时长夹注行后有空行（行末有不可见结点？）
 * [ ] 监控`tex.linebreak()`的质量，检查夹注行overfull
     * [ ] 检查、调整linebreak、hpack、vpack前后的info
