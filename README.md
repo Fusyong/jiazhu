@@ -8,9 +8,20 @@
 * 使用方法，在排版脚本前言中设置如下：
 
 ```latex
-%%%%%%%%%%%%% 使用模块 %%%%%%%%%%%%%
+%%%%%%%%%%%%% 使用模块(夹注要在标点压缩后) %%%%%%%%%%%%%
+
+% 标点压缩
+% pattern: quanjiao(default), kaiming, banjiao, yuanyang
+% hangjian: false(default), ture
+% spacequad: 0.5(default)
+% \usemodule[zhpunc][pattern=banjiao, spacequad=0.5, hangjian=false]
+
+% 夹注
 % default: fontname=\tf, fontsize=10.5pt, interlinespace=0.08em
-\usemodule[jiazhu][fontname=\it, fontsize=10.5pt, interlinespace=0.08em]
+\usemodule[jiazhu][fontname=\tf, fontsize=10.5pt, interlinespace=0.08em]
+
+% 竖排
+\usemodule[vtypeset]
 
 ```
 
@@ -80,6 +91,7 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
 * [ ] 模块化，增加用户接口
     * [x] 模块化
     * [ ] 双行兼容单行
+* [ ] 检查标点压缩与夹注两个模块的加载顺序
 * [x] 清理系统注入夹注盒子中的、有干扰的胶
     * [x] 清理系统注入夹注盒子中的、有干扰的胶
 * [ ] 实测baseline_to_center，使夹注精确居中
