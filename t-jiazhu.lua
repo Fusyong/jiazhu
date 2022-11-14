@@ -466,7 +466,7 @@ end
 
 -- 设置
 function Moduledata.jiazhu.set(interlinespace)
-    Moduledata.jiazhu.interlinespace = interlinespace or "0.08em"
+    Moduledata.jiazhu.interlinespace = interlinespace
 end
 
 function Moduledata.jiazhu.main(head)
@@ -483,9 +483,6 @@ function Moduledata.jiazhu.main(head)
 end
 
 function Moduledata.jiazhu.append()
-    -- 只能使用CLD样式添加任务
-    -- "processors", "before"，只加了par vmodepar和左右parfill skip
-    -- "processors", "after"，还加入了字间的glue userskip、标点前后的penalty userpenalty，可用于断行
     nodes.tasks.appendaction("processors", "after", "Moduledata.jiazhu.main")
 end
 
