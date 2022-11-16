@@ -90,6 +90,7 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [x] 比较视觉长度与盒子自然宽度，以大者为准
 * [ ] 模块化，增加用户接口
     * [x] 模块化
+        * [ ] 字体切换不成功
     * [ ] 双行兼容单行
 * [ ] 检查标点压缩与夹注两个模块的加载顺序
     * [ ] 先压缩再夹注导致行末标点突排失效（未注入rightmarginkern，而有parinitrightskip，可能是夹注分行造成的列表头误导）

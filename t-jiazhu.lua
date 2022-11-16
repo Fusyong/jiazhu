@@ -39,9 +39,8 @@ local tex_linebreak = tex.linebreak
 local tex_sp = tex.sp
 
 --[[ 结点跟踪工具
-local penalty_id = nodes.nodecodes.penalty
 local function show_detail(n, label)
-    local l = label or "show_detail"
+    local l = label or "======="
     print(">>>>>>>>>"..l.."<<<<<<<<<<")
     print(nodes.toutf(n))
     for i in node.traverse(n) do
@@ -49,12 +48,14 @@ local function show_detail(n, label)
         if i.id == glyph_id then
             char = utf8.char(i.char)
             print(i, char)
-        elseif i.id == penalty_id then
+        elseif i.id == nodes.nodecodes.penalty then
             print(i, i.penalty)
-        elseif i.id == glue_id then
+        elseif i.id == nodes.nodecodes.glue then
             print(i, i.width, i.stretch, i.shrink, i.stretchorder, i.shrinkorder)
-        elseif i.id == hlist_id then
-            print(i, nodes.toutf(i.list))
+        elseif i.id == nodes.nodecodes.hlist then
+            print(i, nodes.toutf(i.list),i.width,i.height,i.depth,i.shift,i.glue_set,i.glue_sign,i.glue_order)
+        elseif i.id == nodes.nodecodes.kern then
+            print(i, i.kern, i.expension)
         else
             print(i)
         end
@@ -470,19 +471,16 @@ function Moduledata.jiazhu.set(interlinespace)
 end
 
 function Moduledata.jiazhu.main(head)
-    -- show_detail(head)
     local out_head = head
-    -- 仅处理段落
-    -- if head.id == par_id then
-        local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
-        if par_head_with_rule then
-            out_head = find_fist_rule(par_head_with_rule, jiazhu_boxes)
-        end
-    -- end
+    local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
+    if par_head_with_rule then
+        out_head = find_fist_rule(par_head_with_rule, jiazhu_boxes)
+    end
     return out_head, true
 end
 
 function Moduledata.jiazhu.append()
+    -- 确保在处理标点之后
     nodes.tasks.appendaction("processors", "after", "Moduledata.jiazhu.main")
 end
 
