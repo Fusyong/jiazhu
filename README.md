@@ -23,6 +23,10 @@
 % 竖排
 \usemodule[vtypeset]
 
+% 竖排行间符号
+% \zhuanmh 专名号
+% \shumh 书名号
+% \shumhs 夹注用小书名号
 ```
 
 可参考test文件夹下样例脚本中的设置（可能使用了夹注[jiazhu](https://github.com/Fusyong/jiazhu)、竖排[vtypeset](https://github.com/Fusyong/vertical-typesetting)、标点挤压[zhpunc](https://github.com/Fusyong/zhpunc)三个模块）。
@@ -88,10 +92,14 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [x] 逐行手动测量实际视觉长度（**废弃，改用直接减去法**）
         * [x] 检查correctionskip导致的悬挂（因为是负值，无法通过手动测量感知，需清除后再测量）
     * [x] 比较视觉长度与盒子自然宽度，以大者为准
-* [ ] 模块化，增加用户接口
+* [X] 模块化，增加用户接口
     * [x] 模块化
-        * [ ] 字体切换不成功
+        * [x] 字体切换不成功
     * [ ] 双行兼容单行
+* [ ] 优化书名号和专名号
+    * [ ] 相对字号
+    * [ ] 公用metapost
+    * [ ] 转移至标点模块
 * [ ] 检查标点压缩与夹注两个模块的加载顺序
     * [ ] 先压缩再夹注导致行末标点突排失效（未注入rightmarginkern，而有parinitrightskip，可能是夹注分行造成的列表头误导）
 * [x] 清理系统注入夹注盒子中的、有干扰的胶
