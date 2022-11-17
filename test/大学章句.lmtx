@@ -84,7 +84,7 @@
 % hangjian: false(default), true
 % 加空宽度（角）：
 % spacequad: 0.5(default)
-\usemodule[zhpunc][pattern=banjiao, spacequad=0.5, hangjian=true]
+\usemodule[zhpunc][pattern=banjiao, spacequad=0.5, hangjian=false]
 
 % 夹注
 % default: fontname=tf, fontsize=10.5pt, interlinespace=0.08em(行间标点时约0.2em)
