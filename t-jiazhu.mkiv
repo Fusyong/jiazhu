@@ -25,18 +25,19 @@
     % \hskip 0pt plus 0.5em% 使用后间距过小
 }
 
-% 专名号
-\definebar[zhuanmh][underbar][offset=-0.25, unit=em,rulethickness=0.1mm,continue=no]
+% % 废弃
+% % 专名号
+% \definebar[zhuanmh][underbar][offset=-0.25, unit=em,rulethickness=0.1mm,continue=yes]
 
-% 竖排书名号两种
-% 1对3，适合大字号: 如21pt正文对应0.455em
-\definefont[tidebar][name:stsong*default at 0.455em]
-\definebar[shumh][text=\lower\exheight\hbox{\tidebar\rotate[rotation=-9]{\kern-0.16em～\kern-0.16em}}, repeat=yes, continue=no, offset=-0.25]
-% 1对2，适合小字号，如10.5pt正文对应0.683em
-\newdimen\jiazhsize%
-\jiazhsize=\moduleparameter{jiazhu}{fontsize}
-\definefont[tidebars][name:stsong*default at 0.683\jiazhsize]
-\definebar[shumhs][text=\lower\exheight\hbox{\tidebars\rotate[rotation=-9]{\kern-0.16em～\kern-0.16em}}, repeat=yes, continue=no, offset=-0.25]
+% % 竖排书名号两种
+% % 1对3，适合大字号: 如21pt正文对应0.455em
+% \definefont[tidebar][name:stsong*default at 0.455em]
+% \definebar[shumh][text=\lower\exheight\hbox{\tidebar\rotate[rotation=-9]{\kern-0.16em～\kern-0.16em}}, repeat=yes, continue=yes, offset=-0.25]
+% % 1对2，适合小字号，如10.5pt正文对应0.683em
+% \newdimen\jiazhsize%
+% \jiazhsize=\moduleparameter{jiazhu}{fontsize}
+% \definefont[tidebars][name:stsong*default at 0.683\jiazhsize]
+% \definebar[shumhs][text=\lower\exheight\hbox{\tidebars\rotate[rotation=-9]{\kern-0.16em～\kern-0.16em}}, repeat=yes, continue=yes, offset=-0.25]
 
 % 导入lua
 \ctxlua{require("t-jiazhu.lua")}

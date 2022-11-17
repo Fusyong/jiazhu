@@ -9,24 +9,36 @@
 
 ```latex
 %%%%%%%%%%%%% 使用模块(夹注要在标点压缩后) %%%%%%%%%%%%%
+% 
+% 标点压缩与支持
+% 
+\usemodule[zhpunc][pattern=quanjiao, spacequad=0.5, hangjian=false]
+% 
+% 四种标点压缩方案：全角、开明、半角、原样：
+%   pattern: quanjiao(default), kaiming, banjiao, yuanyang
+% 行间标点（转换`、，。．：！；？`到行间，pattern建议用banjiao）：
+%   hangjian: false(default), true
+% 加空宽度（角）：
+%   spacequad: 0.5(default)
+% 
+% 行间书名号和专名号（\bar实例）：
+%   \zhuanmh{专名}
+%   \shumh{书名}
 
-% 标点压缩
-% pattern: quanjiao(default), kaiming, banjiao, yuanyang
-% hangjian: false(default), ture
-% spacequad: 0.5(default)
-% \usemodule[zhpunc][pattern=banjiao, spacequad=0.5, hangjian=false]
 
+% 
 % 夹注
-% default: fontname=\tf, fontsize=10.5pt, interlinespace=0.08em
-\usemodule[jiazhu][fontname=\tf, fontsize=10.5pt, interlinespace=0.08em]
+% 
+\usemodule[jiazhu][fontname=tf, fontsize=10.5pt, interlinespace=0.08em]
+% default: fontname=tf, fontsize=10.5pt, interlinespace=0.08em(行间标点时约0.2em)
+% fontname和fontsize与\switchtobodyfont的对应参数一致
 
+
+% 
 % 竖排
+% 
 \usemodule[vtypeset]
 
-% 竖排行间符号
-% \zhuanmh 专名号
-% \shumh 书名号
-% \shumhs 夹注用小书名号
 ```
 
 可参考test文件夹下样例脚本中的设置（可能使用了夹注[jiazhu](https://github.com/Fusyong/jiazhu)、竖排[vtypeset](https://github.com/Fusyong/vertical-typesetting)、标点挤压[zhpunc](https://github.com/Fusyong/zhpunc)三个模块）。
@@ -96,10 +108,6 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [x] 模块化
         * [x] 字体切换不成功
     * [ ] 双行兼容单行
-* [ ] 优化书名号和专名号
-    * [ ] 相对字号
-    * [ ] 公用metapost
-    * [ ] 转移至标点模块
 * [ ] 检查标点压缩与夹注两个模块的加载顺序
     * [ ] 先压缩再夹注导致行末标点突排失效（未注入rightmarginkern，而有parinitrightskip，可能是夹注分行造成的列表头误导）
 * [x] 清理系统注入夹注盒子中的、有干扰的胶
