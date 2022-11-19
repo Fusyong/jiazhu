@@ -1,6 +1,13 @@
 Moduledata = Moduledata or {}
 Moduledata.jiazhu = Moduledata.jiazhu or {}
 
+-- 行宽可扩展的量
+Moduledata.jiazhu.width_tolerance = "0.25em"
+-- 夹注替身宽度 TODO 0.75em 太窄可能导致前面的正文太稀疏；太宽可能导致短注估算错误
+Moduledata.jiazhu.anchor_rule_width = "0.75em"
+-- 夹注汉字基线到中线的距离  TODO 实测
+Moduledata.jiazhu.baseline_to_center = "0.4em"
+
 -- 本地化以提高运行效率
 
 local glue_id = nodes.nodecodes.glue --node.id("glue")
@@ -72,10 +79,7 @@ local function boxes_to_rules(head)
     while n do
         if node_hasattribute(n, 2, 222) and n.id == hlist_id then
             local w = node_new(rule_id)
-            -- TODO 太窄可能导致前面的正文太稀疏；
-            -- 太宽可能导致短注估算错误
-            -- w.width = tex_sp("2em")
-            w.width = tex_sp("1em")
+            w.width = tex_sp(Moduledata.jiazhu.anchor_rule_width)
             node_setattribute(w, 3, 333)
             head = node_insertbefore(head, n, w)
             local removed
@@ -252,27 +256,36 @@ end
 -- 打包，修改包的高度和行距
 local function clear_and_pack(box_head)
     local most_w = 0  -- 最大行宽
-    for l in node_traverseid(hlist_id, box_head) do
-        -- inspect(l)
-        -- show_detail(l.head, "夹注行详情，前")
-        -- 清除：
-        -- 错误禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
-        local to_remove_glues = {
-            [correctionskip_id]=true,
-            [righthangskip_id]=true,
-            -- [spaceskip_id]=true,
-            -- [indentskip_id]=true,
-            -- [lefthangskip_id]=true,
-            -- [leftskip_id]=true,
-            -- [rightskip_id]=true,
-            -- [parinitleftskip_id]=true,
-            -- [parinitrightskip_id]=true,
-            -- [parfillleftskip_id]=true,
-            -- [parfillrightskip_id]=true,
-        }
-        l = clear_glues(l,to_remove_glues)
-        if most_w < l.width then most_w = l.width end -- 旧版切换开关（两处！！）
-
+    local n = box_head
+    while n do
+        if n.id == hlist_id then
+            -- 清除：
+            -- 错误禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
+            local to_remove_glues = {
+                [correctionskip_id]=true,
+                [righthangskip_id]=true,
+                -- [spaceskip_id]=true,
+                -- [indentskip_id]=true,
+                -- [lefthangskip_id]=true,
+                -- [leftskip_id]=true,
+                -- [rightskip_id]=true,
+                -- [parinitleftskip_id]=true,
+                -- [parinitrightskip_id]=true,
+                -- [parfillleftskip_id]=true,
+                -- [parfillrightskip_id]=true,
+            }
+            n = clear_glues(n,to_remove_glues)
+            
+            -- 凸排
+            n.head = Moduledata.zhpunc.protrude(n.head)
+            local new_n = node_hpack( n.head, n.width, "exactly")
+            box_head, new_n = node_insertbefore(box_head, n, new_n)
+            box_head, n = node_remove(box_head, n) -- 不能刷洗内存
+        
+            if most_w < new_n.width then most_w = new_n.width end
+        else
+            n = n.next
+        end
     end
 
     -- 统一为最大宽度
@@ -301,7 +314,7 @@ local function make_jiazhu_box(hsize, boxes)
     local to_break_after = false -- 本条在行末，需要断行
 
     -- 夹注重排算法
-    local width_tolerance = tex_sp("0.4em") -- 宽容宽度（挤进一行）
+    local width_tolerance = tex_sp(Moduledata.jiazhu.width_tolerance) -- 宽容宽度（挤进一行）
     local max_hsize = hsize + width_tolerance
     local min_hsize = hsize - width_tolerance
     local step = width_tolerance / 4 --步进控制 TODO 优化
@@ -392,7 +405,7 @@ local function make_jiazhu_box(hsize, boxes)
     end
 
     local box_head_height = box_head.height - sub_glue_h
-    local baseline_to_center =  tex_sp("0.4em") -- TODO 应根据字体数据计算
+    local baseline_to_center =  tex_sp(Moduledata.jiazhu.baseline_to_center)
     box_head.height = baseline_to_center + box_head_height/ 2
     box_head.depth = box_head_height - box_head.height
 
