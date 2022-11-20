@@ -53,10 +53,9 @@
 
 ## 效果
 
+![plot](https://blog.xiiigame.com/img/2022-11-20-ConTeXt简介和中文排版效果/竖开明大学.jpg)
 
-![plot](https://blog.xiiigame.com/img/2022-02-15-ConTeXt-LMTX中文竖排插件/vtypesetting_callback_1.jpg)
-
-![plot](https://blog.xiiigame.com/img/2022-02-15-ConTeXt-LMTX中文竖排插件/vtypesetting_callback_2.jpg)
+![plot](https://blog.xiiigame.com/img/2022-11-20-ConTeXt简介和中文排版效果/横全角庄子.jpg)
 
 
 ## 术语
