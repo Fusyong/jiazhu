@@ -6,7 +6,7 @@ Moduledata.jiazhu.width_tolerance = "0.25em"
 -- 夹注替身宽度 TODO 0.75em 太窄可能导致前面的正文太稀疏；太宽可能导致短注估算错误
 Moduledata.jiazhu.anchor_rule_width = "0.75em"
 -- 夹注汉字基线到中线的距离  TODO 实测
-Moduledata.jiazhu.baseline_to_center = "0.4em"
+Moduledata.jiazhu.baseline_to_center = "0.34em" -- 0.4
 
 -- 本地化以提高运行效率
 
