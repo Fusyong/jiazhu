@@ -437,7 +437,8 @@ local function insert_jiazhu(head_with_rules, vpar_head, jiazhu_boxes)
                         head_with_rules, penalty = node_insertafter(head_with_rules, jiazhu_box, penalty)
                         -- 移除标记rule
                         if to_remove then
-                            head_with_rules, rule = node_remove(head_with_rules,rule,true)
+                            head_with_rules, _ = node_remove(head_with_rules,rule,true)
+                            -- head_with_rules, rule = node_remove(head_with_rules,rule,true)
                         else
                             -- 或，加胶
                             local glue = node_new("glue")
