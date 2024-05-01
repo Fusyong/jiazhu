@@ -113,6 +113,7 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [ ] 检查、调整linebreak、hpack、vpack前后的info
     * [ ] 或检查正文行overfull，压缩标点
 * [ ] 管理属性，防止冲突，参考ruby模块
+* [ ] [如果一段文字全部是夹注，则夹注模块不起作用](https://github.com/Fusyong/jiazhu/issues/3#issue-2263817787)
 
 # 关于断行、分段的备用资料
 
