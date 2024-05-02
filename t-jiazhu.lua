@@ -18,6 +18,7 @@ local rule_id = nodes.nodecodes.rule
 local vlist_id = nodes.nodecodes.vlist
 local correctionskip_id = nodes.subtypes.glue.correctionskip
 local righthangskip_id = nodes.subtypes.glue.righthangskip -- node.subtype("righthangskip")
+local lefthangskip_id = nodes.subtypes.glue.lefthangskip
 local spaceskip_id = nodes.subtypes.glue.spaceskip
 local indentskip_id = nodes.subtypes.glue.indentskip
 local kern_id = nodes.nodecodes.kern
@@ -266,7 +267,7 @@ local function clear_and_pack(box_head)
                 [righthangskip_id]=true,
                 -- [spaceskip_id]=true,
                 -- [indentskip_id]=true,
-                -- [lefthangskip_id]=true,
+                [lefthangskip_id]=true,
                 -- [leftskip_id]=true,
                 -- [rightskip_id]=true,
                 -- [parinitleftskip_id]=true,
