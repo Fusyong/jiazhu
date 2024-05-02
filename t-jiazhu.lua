@@ -41,7 +41,7 @@ local node_traverse = node.traverse
 local node_traverseid = node.traverseid
 local node_vpack = node.vpack
 
-local tex_dimen_textwidth = tex.dimen.textwidth
+local texget = tex.get --获取当前/本地/local值
 local tex_linebreak = tex.linebreak
 local tex_sp = tex.sp
 
@@ -231,7 +231,7 @@ local function clear_glues(l,to_remove_glues)
     end
 
 
-    -- inspect(l)
+    -- inspect(l) -打印表格
     -- show_detail(l.head, "夹注行详情，后")
 
     -- TODO 测量宽度/标记宽度与实际视觉宽度不一致
@@ -461,7 +461,9 @@ local function find_fist_rule(par_head_with_rule, boxes)
     local n = par_head_with_rule
     while n do
         if n.id == rule_id and  node_hasattribute(n,3,333) then
-            local hsize = tex_dimen_textwidth -- tex.dimen.hsize
+            local hsize = texget("linewidth") -- 当前/local行宽 -- columnwidth
+            -- 如果需要考虑 hangafter hangindent parindent leftskip rightskip等
+            -- 请参考源码： typo-fln.lua
 
             -- TODO par_break改变了head_with_rules
             local para = {hsize=hsize}
