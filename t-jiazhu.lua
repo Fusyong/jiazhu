@@ -227,7 +227,8 @@ local function clear_glues(l,to_remove_glues)
     while n and not is_visible_node(n) do
         if n.id == glue_id and to_remove_glues[n.subtype] then
             width_dropdown = width_dropdown + n.width
-            l.head,n = node_remove(l.head, n, true)
+            n = n.prev
+            l.head, _ = node_remove(l.head, n.next, true)
         else
             n = n.prev
         end
