@@ -21,6 +21,8 @@ local righthangskip_id = nodes.subtypes.glue.righthangskip -- node.subtype("righ
 local lefthangskip_id = nodes.subtypes.glue.lefthangskip
 local spaceskip_id = nodes.subtypes.glue.spaceskip
 local indentskip_id = nodes.subtypes.glue.indentskip
+local leftskip_id = nodes.subtypes.glue.leftskip
+local rightskip_id = nodes.subtypes.glue.rightskip
 local kern_id = nodes.nodecodes.kern
 
 local node_tail = node.tail
@@ -261,20 +263,103 @@ local function clear_and_pack(box_head)
     while n do
         if n.id == hlist_id then
             -- 清除：
-            -- 错误禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
             local to_remove_glues = {
-                [correctionskip_id]=true,
+                [correctionskip_id]=true, -- 错误禁则导致的负值的correctionskip，确保得到视觉宽度，可探测overfull
                 [righthangskip_id]=true,
-                -- [spaceskip_id]=true,
-                -- [indentskip_id]=true,
                 [lefthangskip_id]=true,
-                -- [leftskip_id]=true,
+                [indentskip_id]=true,
+                [leftskip_id]=true,
                 -- [rightskip_id]=true,
+                -- [spaceskip_id]=true, --空格
                 -- [parinitleftskip_id]=true,
                 -- [parinitrightskip_id]=true,
                 -- [parfillleftskip_id]=true,
                 -- [parfillrightskip_id]=true,
             }
+            -- inspect(nodes.subtypes.glue)
+            --[[
+            table={
+                [0]="userskip",
+                "lineskip",
+                "baselineskip",
+                "parskip",
+                "abovedisplayskip",
+                "belowdisplayskip",
+                "abovedisplayshortskip",
+                "belowdisplayshortskip",
+                "leftskip",
+                "rightskip",
+                "topskip",
+                "splittopskip",
+                "tabskip",
+                "spaceskip",
+                "xspaceskip",
+                "zerospaceskip",
+                "parfillleftskip",
+                "parfillskip",
+                "parinitleftskip",
+                "parinitrightskip",
+                "indentskip",
+                "lefthangskip",
+                "righthangskip",
+                "correctionskip",
+                "intermathskip",
+                "ignored",
+                "page",
+                "mathskip",
+                "thinmuskip",
+                "medmuskip",
+                "thickmuskip",
+                "conditionalmathskip",
+                "rulebasedmathskip",
+                "muglue",
+                "leaders",
+                "cleaders",
+                "xleaders",
+                "gleaders",
+                "uleaders",
+                ["abovedisplayshortskip"]=6,
+                ["abovedisplayskip"]=4,
+                ["baselineskip"]=2,
+                ["belowdisplayshortskip"]=7,
+                ["belowdisplayskip"]=5,
+                ["cleaders"]=35,
+                ["conditionalmathskip"]=31,
+                ["correctionskip"]=23,
+                ["gleaders"]=37,
+                ["ignored"]=25,
+                ["indentskip"]=20,
+                ["intermathskip"]=24,
+                ["leaders"]=34,
+                ["lefthangskip"]=21,
+                ["leftskip"]=8,
+                ["lineskip"]=1,
+                ["mathskip"]=27,
+                ["medmuskip"]=29,
+                ["muglue"]=33,
+                ["page"]=26,
+                ["parfillleftskip"]=16,
+                ["parfillrightskip"]=17,
+                ["parfillskip"]=17,
+                ["parinitleftskip"]=18,
+                ["parinitrightskip"]=19,
+                ["parskip"]=3,
+                ["righthangskip"]=22,
+                ["rightskip"]=9,
+                ["rulebasedmathskip"]=32,
+                ["spaceskip"]=13,
+                ["splittopskip"]=11,
+                ["tabskip"]=12,
+                ["thickmuskip"]=30,
+                ["thinmuskip"]=28,
+                ["topskip"]=10,
+                ["uleaders"]=38,
+                ["userskip"]=0,
+                ["xleaders"]=36,
+                ["xspaceskip"]=14,
+                ["zerospaceskip"]=15,
+            }
+            ]]
             n = clear_glues(n,to_remove_glues)
             
             -- 凸排

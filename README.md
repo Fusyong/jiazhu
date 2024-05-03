@@ -94,7 +94,7 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [x] parfillskip不起作用（用自定glue代替，但可能影响标点压缩模块，导致同样内容的两行不整齐）
         * [x] `tex.preparelinebreak()`注入的parfillskip有效
     * [ ] 与narrower重叠使用缩进（当在linebreak设置）
-        * [X] 暂时用\leftskip代替
+        * [X] 暂时用\leftskip代替 TODO
 * [x] 夹注长度错误，导致与正文重叠，悬挂在版心外
     * [x] 逐行手动测量实际视觉长度（**废弃，改用直接减去法**）
         * [x] 检查correctionskip导致的悬挂（因为是负值，无法通过手动测量感知，需清除后再测量）
@@ -113,7 +113,8 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
     * [ ] 检查、调整linebreak、hpack、vpack前后的info
     * [ ] 或检查正文行overfull，压缩标点
 * [ ] 管理属性，防止冲突，参考ruby模块
-* [ ] [如果一段文字全部是夹注，则夹注模块不起作用](https://github.com/Fusyong/jiazhu/issues/3#issue-2263817787)
+* [x] [如果一段文字全部是夹注，则夹注模块不起作用](https://github.com/Fusyong/jiazhu/issues/3#issue-2263817787)。暂时hacking：`\ifvmode ~\kern-0.25em\fi`
+  * [ ] TODO
 
 # 关于断行、分段的备用资料
 
