@@ -223,7 +223,7 @@ local function clear_glues(l,to_remove_glues)
     end
 
     -- 处理尾部的不可见结点
-    n = node_tail(n)
+    n = node_tail(n) --从尾部开始反向处理
     while n and not is_visible_node(n) do
         if n.id == glue_id and to_remove_glues[n.subtype] then
             width_dropdown = width_dropdown + n.width
@@ -233,7 +233,6 @@ local function clear_glues(l,to_remove_glues)
             n = n.prev
         end
     end
-
 
     -- inspect(l) -打印表格
     -- show_detail(l.head, "夹注行详情，后")
