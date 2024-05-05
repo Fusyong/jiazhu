@@ -1,10 +1,10 @@
 Moduledata = Moduledata or {}
 Moduledata.jiazhu = Moduledata.jiazhu or {}
 
--- 行宽可扩展的量
+-- 行宽可扩展的量；在尾部时，扩展太多可能导致断行 TODO 禁止断行
 Moduledata.jiazhu.width_tolerance = "0.25em"
 -- 夹注替身宽度 TODO 0.75em 太窄可能导致前面的正文太稀疏；太宽可能导致短注估算错误
-Moduledata.jiazhu.anchor_rule_width = "0.75em"
+Moduledata.jiazhu.anchor_rule_width = "0.5em"
 -- 夹注汉字基线到中线的距离  TODO 实测
 Moduledata.jiazhu.baseline_to_center = "0.34em" -- 0.4
 

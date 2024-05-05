@@ -4,6 +4,7 @@
 %% tex.linebreak()的用法；
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \setuppapersize[A4,landscape]
+% \setuppapersize[A4]
 
 % 中文配置
 \mainlanguage[cn]

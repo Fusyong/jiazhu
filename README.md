@@ -55,8 +55,11 @@
 
 ![plot](https://blog.xiiigame.com/img/2022-11-20-ConTeXt简介和中文排版效果/竖开明大学.jpg)
 
-![plot](https://blog.xiiigame.com/img/2022-11-20-ConTeXt简介和中文排版效果/横全角庄子.jpg)
+![plot](https://blog.xiiigame.com/img/2022-11-20-ConTeXt简介和中文排版效果/竖半角大学.jpg)
 
+![plot](https://blog.xiiigame.com/img/2022-11-20-ConTeXt简介和中文排版效果/竖半角行间大学.jpg)
+
+![plot](https://blog.xiiigame.com/img/2022-11-20-ConTeXt简介和中文排版效果/横开明大学.jpg)
 
 ## 术语
 
@@ -74,7 +77,7 @@ inline cutting note, 夹注/双行夹注 in simplified Chinese, 割注/warichū 
         1. 根据这个宽度和盒子的自然宽度预计、试排盒子的节点列表，循环：
             1. 预估小于或等于两行时，按盒子宽度的一半试排为两行（可略宽容），删除rule；
             1. 如果预估大于两行，则按空间宽度试排，取前两行；
-            1. vpack插入rule之前，其后加罚点0，（当基本填满行末空间时罚点-10000，即强制断行，放置再次插入夹注）；
+            1. vpack插入rule之前，其后加罚点0，（当基本填满行末空间时罚点-10000，即强制断行，防止再次插入夹注）；
 1. 用新的节点列表代替原段落的节点列表（由系统断行）。
 
 ## bug & TODO
