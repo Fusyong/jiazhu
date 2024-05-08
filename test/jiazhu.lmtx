@@ -19,8 +19,11 @@
 % \usebodyfont   [mschinese-literate,12pt]
 % \definebodyfontenvironment[24pt]
 % \definebodyfontenvironment[18pt]
+
 % 定义字体
 % \definefont[kaiti][name:kaiti*default at 24pt]
+\definefont[simli][file:SIMLI.TTF*default at 20pt]
+\definefont[stli][file:STLITI.TTF*default at 20pt]
 
 % 配置页码、结构序号等为汉字
 \setuppagenumber [numberconversion=cn]
@@ -73,7 +76,7 @@
 
 %%%%%%%%%%%%% 使用模块(保持顺序) %%%%%%%%%%%%%
 % 竖排
-\usemodule[vtypeset]
+% \usemodule[vtypeset]
 
 
 % 标点压缩与支持
@@ -112,10 +115,15 @@
 \setuptype[style=\ttx]
 \starttext
 
+hello 一二三你好
 
-\zhangj{右傳之七章。釋正心修身。
-\jiazh{此亦承上章以起下章。蓋意誠則真無惡而實有善矣，所以能存是心以檢其身。然或但知誠意，而不能密察此心之存否，則又無以直内而修身也。○自此以下，并以舊文爲正。}
-}
+{\stli hello 一二三你好}
+
+{\simli hello 一二三你好}
+
+% \zhangj{右傳之七章。釋正心修身。
+% \jiazh{此亦承上章以起下章。蓋意誠則真無惡而實有善矣，所以能存是心以檢其身。然或但知誠意，而不能密察此心之存否，則又無以直内而修身也。○自此以下，并以舊文爲正。}
+% }
 
 \stoptext
 
