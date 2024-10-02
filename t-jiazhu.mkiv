@@ -46,7 +46,7 @@
 % 传参设置命令
 % local named_values = utilities.parsers.settings_to_hash(keyvals)
 \def\jiazhuset[#1]{%
-    \ctxlua{Moduledata.jiazhu.set([==[#1]==])}%
+    \ctxlua{Thirddata.jiazhu.set([==[#1]==])}%
 }
 % \currentmoduleparameter{pattern}
 % \moduleparameter{jiazhu}{pattern}
@@ -54,7 +54,7 @@
 
 % 在指定位置（\everystarttext）插入/应用命令
 \def\jiazhuappend{%
-    \ctxlua{Moduledata.jiazhu.append()}%
+    \ctxlua{Thirddata.jiazhu.append()}%
 }
 \appendtoks \jiazhuappend \to \everystarttext
 

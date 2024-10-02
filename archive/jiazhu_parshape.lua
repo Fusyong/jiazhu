@@ -1,5 +1,5 @@
-Moduledata = Moduledata or {}
-Moduledata.jiazhu = Moduledata.jiazhu or {}
+Thirddata = Thirddata or {}
+Thirddata.jiazhu = Thirddata.jiazhu or {}
 
 -- 本地化以提高运行效率
 
@@ -435,7 +435,7 @@ local function find_fist_rule(par_head_with_rule, boxes)
     return par_head_with_rule
 end
 
-function Moduledata.jiazhu.main(head)
+function Thirddata.jiazhu.main(head)
     local out_head = head
     local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
     if par_head_with_rule then
@@ -445,11 +445,11 @@ function Moduledata.jiazhu.main(head)
     return out_head, true
 end
 
-function Moduledata.jiazhu.append()
+function Thirddata.jiazhu.append()
     -- 只能使用CLD样式添加任务
     -- "processors", "before"，只加了par vmodepar和左右parfill skip
     -- "processors", "after"，还加入了字间的glue userskip、标点前后的penalty userpenalty，可用于断行
-    nodes.tasks.appendaction("processors", "after", "Moduledata.jiazhu.main")
+    nodes.tasks.appendaction("processors", "after", "Thirddata.jiazhu.main")
 end
 
-return Moduledata.jiazhu
+return Thirddata.jiazhu

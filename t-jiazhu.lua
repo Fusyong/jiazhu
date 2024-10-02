@@ -1,12 +1,12 @@
-Moduledata = Moduledata or {}
-Moduledata.jiazhu = Moduledata.jiazhu or {}
+Thirddata = Thirddata or {}
+Thirddata.jiazhu = Thirddata.jiazhu or {}
 
 -- 行宽可扩展的量；在尾部时，扩展太多可能导致断行 TODO 禁止断行
-Moduledata.jiazhu.width_tolerance = "0.25em"
+Thirddata.jiazhu.width_tolerance = "0.25em"
 -- 夹注替身宽度 TODO 0.75em 太窄可能导致前面的正文太稀疏；太宽可能导致短注估算错误
-Moduledata.jiazhu.anchor_rule_width = "0.5em"
+Thirddata.jiazhu.anchor_rule_width = "0.5em"
 -- 夹注汉字基线到中线的距离  TODO 实测
-Moduledata.jiazhu.baseline_to_center = "0.34em" -- 0.4
+Thirddata.jiazhu.baseline_to_center = "0.34em" -- 0.4
 
 -- 本地化以提高运行效率
 
@@ -82,7 +82,7 @@ local function boxes_to_rules(head)
     while n do
         if node_hasattribute(n, 2, 222) and n.id == hlist_id then
             local w = node_new(rule_id)
-            w.width = tex_sp(Moduledata.jiazhu.anchor_rule_width)
+            w.width = tex_sp(Thirddata.jiazhu.anchor_rule_width)
             node_setattribute(w, 3, 333)
             head = node_insertbefore(head, n, w)
             local removed
@@ -363,7 +363,7 @@ local function clear_and_pack(box_head)
             n = clear_glues(n,to_remove_glues)
             
             -- 凸排
-            n.head = Moduledata.zhpunc.protrude(n.head)
+            n.head = Thirddata.zhpunc.protrude(n.head)
             local new_n = node_hpack( n.head, n.width, "exactly")
             box_head, new_n = node_insertbefore(box_head, n, new_n)
             box_head, n = node_remove(box_head, n) -- 不能刷洗内存
@@ -400,7 +400,7 @@ local function make_jiazhu_box(hsize, boxes)
     local to_break_after = false -- 本条在行末，需要断行
 
     -- 夹注重排算法
-    local width_tolerance = tex_sp(Moduledata.jiazhu.width_tolerance) -- 宽容宽度（挤进一行）
+    local width_tolerance = tex_sp(Thirddata.jiazhu.width_tolerance) -- 宽容宽度（挤进一行）
     local max_hsize = hsize + width_tolerance
     local min_hsize = hsize - width_tolerance
     local step = width_tolerance / 4 --步进控制 TODO 优化
@@ -468,7 +468,7 @@ local function make_jiazhu_box(hsize, boxes)
     -- 清理、包装
     box_head = clear_and_pack(box_head)
 
-    local skip = tex_sp(Moduledata.jiazhu.interlinespace) -- 夹注行间距
+    local skip = tex_sp(Thirddata.jiazhu.interlinespace) -- 夹注行间距
     local sub_glue_h = 0 -- 计算删除的胶高度
     local n = box_head.head
     local count = 0
@@ -491,7 +491,7 @@ local function make_jiazhu_box(hsize, boxes)
     end
 
     local box_head_height = box_head.height - sub_glue_h
-    local baseline_to_center =  tex_sp(Moduledata.jiazhu.baseline_to_center)
+    local baseline_to_center =  tex_sp(Thirddata.jiazhu.baseline_to_center)
     box_head.height = baseline_to_center + box_head_height/ 2
     box_head.depth = box_head_height - box_head.height
 
@@ -568,11 +568,11 @@ local function find_fist_rule(par_head_with_rule, boxes)
 end
 
 -- 设置
-function Moduledata.jiazhu.set(interlinespace)
-    Moduledata.jiazhu.interlinespace = interlinespace
+function Thirddata.jiazhu.set(interlinespace)
+    Thirddata.jiazhu.interlinespace = interlinespace
 end
 
-function Moduledata.jiazhu.main(head)
+function Thirddata.jiazhu.main(head)
     local out_head = head
     local par_head_with_rule, jiazhu_boxes = boxes_to_rules(head)
     if par_head_with_rule then
@@ -581,9 +581,9 @@ function Moduledata.jiazhu.main(head)
     return out_head, true
 end
 
-function Moduledata.jiazhu.append()
+function Thirddata.jiazhu.append()
     -- 确保在处理标点之后
-    nodes.tasks.appendaction("processors", "after", "Moduledata.jiazhu.main")
+    nodes.tasks.appendaction("processors", "after", "Thirddata.jiazhu.main")
 end
 
-return Moduledata.jiazhu
+return Thirddata.jiazhu
